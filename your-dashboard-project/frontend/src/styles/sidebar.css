@@ -1,0 +1,427 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600&display=swap');
+
+
+/* ===== Sidebar ===== */
+.sidebar {
+
+    width: var(--sidebar-width);
+    background-color: #1e1e2f; /* deep charcoal */
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.28s ease, width 0.28s ease;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow-y: visible;
+    z-index: 1000;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.3); /* subtle depth */
+    border-right: 4px solid rgba(169, 169, 184, 0.536); /* 👈 separator line */
+}
+
+/* Collapsed Sidebar */
+.sidebar.collapsed {
+    width: 80px;
+}
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed ul li span,
+.sidebar.collapsed .quick-access li span {
+    display: none;
+}
+.sidebar.collapsed .sidebar-heading {
+    text-align: center;
+    font-size: 11px;
+    margin: 10px 0;
+}
+
+/* When sidebar collapses */
+.sidebar.collapsed ~ .main-content .topbar {
+    left: 80px;           /* sidebar collapsed */
+    right: 0;             /* still fills remaining space */
+}
+.sidebar.collapsed ~ .main-content {
+    margin-left: var(--sidebar-collapsed-width);
+}
+
+.sidebar.collapsed ~ .topbar {
+    left: var(--sidebar-collapsed-width);
+    width: calc(100% - var(--sidebar-collapsed-width));
+  }
+
+/* center the logo when sidebar is collapsed */
+.sidebar.collapsed .logo {
+justify-content: center;    /* center horizontally */
+padding-left: 0;            /* remove left padding */
+padding-right: 0;           /* remove right padding */
+gap: 0;                     /* remove gap so icon is perfectly centered */
+transition: padding 0.2s ease, justify-content 0.2s ease;
+}
+
+/* shrink the logo image slightly in collapsed state so it fits nicely */
+.sidebar.collapsed .sidebar-logo {
+width: 65px;   /* tweak to taste: 36-44px usually looks good */
+height: 55px;
+padding: 4px;  /* optional inner padding for a bit of breathing room */
+border-radius: 8px;
+object-fit: cover;
+display: block;
+margin: 0;     /* ensure no stray margins */
+}
+
+/* Sidebar Logo */
+.sidebar .logo {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    padding-right: 0;
+    padding-left: 0;
+    font-weight: bold;
+    font-size: 16px;
+    background: #1e1e2f;
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-radius: 0 0 12px 0; /* smooth rounded bottom-right */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3); /* subtle depth */
+}
+.sidebar-logo {
+    width: 80px;
+    height: 75px;
+    border-radius: 12px; 
+    padding: 10px;
+}
+/* Logo text block */
+.logo-text {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.4;
+}
+
+/* Main Brand Title */
+.logo-text .main {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+/* Sub Highlight Line */
+.logo-text .highlight {
+    font-size: 18px;
+    font-weight: 600;
+    color: #4cc9f0; /* modern cyan accent */
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+    margin-right: 0;
+}
+
+/* Optional tagline or lighter text */
+.logo-text span {
+    font-size: 14px;
+    color: #cfd8e3;
+    font-weight: 400;
+}
+
+/* Sidebar menu */
+.sidebar ul {
+    list-style: none;
+    margin: 0;
+    padding: 10px 0;
+}
+.sidebar ul li {
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: rgb(169, 169, 184);
+    font-size: 15px;
+    transition: all 0.3s ease;
+    align-items: center;
+}
+.sidebar ul li i {
+    margin-right: 12px;
+    font-size: 16px;
+}
+.sidebar.collapsed ul li i {
+    margin-right: 0;
+    text-align: center;
+}
+.sidebar ul li:hover {
+    background-color: rgba(76,201,240,0.15);
+    color: #4cc9f0;
+}
+
+/* Sidebar heading */
+.sidebar-heading {
+    margin: 20px 20px 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6c757d;
+    letter-spacing: 1px;
+}
+
+
+/* Active State */
+.sidebar ul li.active {
+    background-color: #4361ee33;  /* lighter highlight */
+    color: #ffffff;
+    border-left: 4px solid #4cc9f0;
+    font-weight: 600;
+}
+.sidebar ul li.active i {
+    color: #ffffff;
+}
+
+/* Quick Access active */
+.sidebar .quick-access li a.active {
+    color: #ffffff;
+    font-weight: 600;
+    position: relative;
+}
+.sidebar .quick-access li a.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background-color: #4cc9f0;
+    border-radius: 2px;
+}
+.sidebar .quick-access li a.active i {
+    color: #4cc9f0;
+}
+
+/* Keep scroll offset for main content */
+[id] {
+    scroll-margin-top: 125px;
+}
+/* ===== Search + supplier list styles (PRETTY) ===== */
+.search-block {
+  padding: 12px 14px 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+/* prettier Search heading */
+.search-block label {
+  font-family: "Cinzel", serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c7d2ef;          /* soft bluish-grey */
+  letter-spacing: 0.12em;  /* refined spacing */
+  text-transform: uppercase;
+  margin: 12px 6px 10px 6px;
+  display: inline-block;
+  opacity: 0.95;
+  position: relative;
+}
+
+/* gradient accent underline */
+.search-block label::after {
+  content: "";
+  display: block;
+  height: 2px;
+  width: 100px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #4cc9f0, #4361ee 70%, transparent);
+  opacity: 0.9;
+}
+
+
+
+.search-input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: #151724;
+  color: #e6eef8;
+  outline: none;
+  font-size: 12px;
+  transition: border .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.search-input::placeholder { color: #8f97ab; }
+.search-input:focus {
+  border-color: rgba(76,201,240,0.5);
+  box-shadow: 0 0 0 3px rgba(76,201,240,0.12);
+  background: #13162a;
+}
+
+.results-count {
+  color: #aeb7cc;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* List container */
+.supplier-list {
+  list-style: none;
+  margin: 10px 0 0 0;
+  padding: 6px 4px 8px 4px;
+  max-height: calc(100vh - 320px);  /* adjust if your header/footer height differs */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbar visually but keep scrolling */
+.supplier-list::-webkit-scrollbar { width: 0; height: 0; }
+.supplier-list { scrollbar-width: none; -ms-overflow-style: none; }
+
+/* Items */
+.supplier-list li {
+  position: relative;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin: 6px 8px;
+  cursor: pointer;
+  color: #d6d6d6;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+  border: 1px solid rgba(255,255,255,0.04);
+  transition: background .15s ease, color .15s ease, transform .08s ease, border .15s ease;
+  user-select: none;
+  margin-bottom: 10px;
+}
+
+.supplier-list li:hover {
+  background: rgba(76,201,240,0.10);
+  color: #ffffff;
+  border-color: rgba(76,201,240,0.25);
+  transform: translateX(2px);
+}
+
+.supplier-list li:active {
+  transform: translateX(1px) scale(0.997);
+}
+
+/* Active (selected) */
+.supplier-list li.active {
+  background: rgba(67,97,238,0.16);
+  color: #ffffff;
+  border-color: rgba(67,97,238,0.35);
+  box-shadow: inset 0 0 0 2px rgba(76,201,240,0.18);
+}
+.supplier-list li.active::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 2px;
+  background: #4cc9f0;
+}
+
+.supplier-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+
+.no-results {
+  color: #9aa0b0;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+/* Ensure the sidebar itself doesn’t block list scrolling */
+.sidebar { overflow-y: visible; }
+
+/* Smooth transition for slide-out */
+.sidebar {
+  transition: transform 0.28s ease;
+}
+
+/* Hide the sidebar completely when app-wrapper has .sidebar-hidden */
+.app-wrapper.sidebar-hidden .sidebar {
+  transform: translateX(-100%);
+}
+
+
+
+/* ===== Mobile sidebar behavior ===== */
+:root {
+  /* Mobile sidebar width ≈ 55–60% of screen, capped */
+  --sidebar-mobile-width: clamp(150px, 58vw, 165px);
+}
+
+
+/* Backdrop when sidebar is open */
+.app-wrapper::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+  z-index: 999; /* below sidebar, above content */
+}
+
+/* Mobile rules */
+@media (max-width: 767px) {
+  /* Sidebar: hidden by default, slide-in panel */
+  .sidebar {
+    width: var(--sidebar-mobile-width);
+    transform: translateX(-100%);     /* hidden */
+    overflow-y: auto;                  /* scrollable on mobile */
+    z-index: 1100;                     /* above backdrop */
+    border-right: 2px solid rgba(169,169,184,0.45); /* was 4px */
+    box-shadow: 1px 0 6px rgba(0,0,0,0.28);
+  }
+
+  /* Topbar spans full width on mobile */
+  .topbar {
+    left: 0;
+    width: 100%;
+  }
+
+  /* When open, show the sidebar and backdrop */
+  .app-wrapper.sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+  .app-wrapper.sidebar-open::after {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Logo area smaller */
+.sidebar .logo { padding-top: 8px; padding-bottom: 8px; }
+.sidebar-logo { width: 60px; height: 56px; padding: 8px; }
+
+.logo-text .main { font-size: 14px; }
+.logo-text .highlight { font-size: 10px; }
+.logo-text span { font-size: 10px; }
+
+/* Menu items tighter */
+.sidebar ul li {
+  padding: 8px 12px;      /* was 10px 12px */
+  font-size: 11px;        /* was 14–15px */
+}
+.sidebar ul li i {
+  margin-right: 8px;      /* was 10–12px */
+  font-size: 12px;        /* was 15–16px */
+}
+
+ /* Search block tighter */
+.search-block { padding: 8px 10px 6px 10px; }
+.search-input { padding: 8px 10px; font-size: 10px; }
+
+/* List height recalculated for the smaller header */
+.supplier-list { max-height: calc(100vh - 220px); }
+
+  /* hide collapse-specific tweaks on mobile */
+  .sidebar.collapsed { width: var(--sidebar-mobile-width); }
+
+.supplier-name {
+  font-size: 10px;
+  
+}
+}
+
+

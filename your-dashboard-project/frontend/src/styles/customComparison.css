@@ -1,0 +1,459 @@
+/* src/styles/customComparison.css
+   Self-contained, overriding rules for CustomComparison.jsx
+   Paste entire file to replace current contents.
+*/
+
+/* -------------------------
+   Panel-level variables + outer card (NEW)
+   Inspired by monthlyComparison layout but with different colour tone
+   -------------------------*/
+:root {
+  /* table sizing vars (existing) */
+  --cc-col-w: 90px;  /* per-data-column width for left/right data columns */
+  --cc-amt-w: 110px;  /* amount column can be a bit wider */
+  --cc-item-w: 180px;  /* item column width */
+
+  /* new panel-level tuning (different from monthlyComparison) */
+  --cc-panel-padding: 12px;
+  --cc-panel-radius: 14px;
+  --cc-table-fixed-h: 500px; /* internal scroll area height */
+}
+
+/* Outer panel/card for Custom Comparison
+   NOTE: different colour — deep indigo → rose gradient (not same as monthlyComparison).
+   This wrapper ensures the panel doesn't force page scroll and contains internal scrolling.
+*/
+.cc-panel {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #2b1b5a 0%, #6b49a3 35%, #edcbd9 100%);
+  border-radius: var(--cc-panel-radius);
+  padding: var(--cc-panel-padding);
+  margin: 18px;
+
+  box-shadow: 0 8px 28px rgba(10,10,30,0.14), inset 0 1px 0 rgba(255,255,255,0.04);
+  border: 1px solid rgba(0,0,0,0.06);
+  box-sizing: border-box;
+  width: 98%;
+  max-width: 98%;
+
+  /* prevent document growth — internal area will scroll */
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+}
+
+/* header inside panel */
+.cc-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 6px;
+}
+
+.cc-panel__header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #fffafc;
+  line-height: 1.05;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* body area: contains the inner table wrapper and actionbar */
+.cc-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+  /* let the table wrapper occupy remaining height and scroll internally */
+  flex: 1 1 auto;
+  padding-top: 6px;
+}
+
+/* -------------------------
+   Panel wrapper (inner scroll area)
+   Replaces previous .cc-table-wrap overflow behavior to lock scroll inside
+   -------------------------*/
+.cc-table-wrap {
+  padding: 9px;
+  background: #fff8fb;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(18,44,83,0.06);
+  border: 1px solid rgba(107, 73, 163, 0.08); 
+  box-sizing: border-box;
+  overflow: auto; /* allow horizontal scroll inside panel */
+
+  /* set a fixed-ish height so page won't scroll; internal content scrolls here */
+  height: var(--cc-table-fixed-h);
+  max-height: calc(var(--cc-table-fixed-h));
+  -webkit-overflow-scrolling: touch;
+}
+
+/* -------------------------
+   Table base + spacing
+   -------------------------*/
+/* Ensure our table uses these styles (higher specificity) */
+.cc-table {
+  width: 100%;
+  border-collapse: separate !important;
+  border-spacing: 12px 10px !important; /* horizontal | vertical gap */
+  table-layout: auto !important;         /* let browser size columns to content */
+  box-sizing: border-box;
+}
+
+/* Reset default padding on th/td (we'll style inner boxes) */
+.cc-table th,
+.cc-table td {
+  padding: 0;
+  border: none;
+  background: transparent;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+/* -------------------------
+   Remove any "sticky" behavior inherited elsewhere
+   -------------------------*/
+.cc-table thead,
+.cc-table thead tr,
+.cc-table thead th,
+.cc-table thead * {
+  position: static !important;
+  top: auto !important;
+  z-index: auto !important;
+  transform: none !important;
+}
+
+/* Make cc-sticky-col non-sticky and visually consistent */
+.cc-table .cc-sticky-col {
+  position: static !important;
+  left: auto !important;
+  z-index: auto !important;
+  background: linear-gradient(180deg,#8e3877,#ffeaf7);
+  padding-right: 12px; /* breathing space between Item and first data column */
+  box-sizing: border-box;
+  border-radius: 8px;
+    align-items: center; /* vertical center the pill */
+    font-size: 18px;
+}
+
+
+
+/* hide any decorative pseudo from inherited sticky implementations */
+.cc-table .cc-sticky-col::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* -------------------------
+   Column widths (colgroup from JSX)
+   Increase widths so colSpan=5 has space
+   If you change these numbers, update the min-width calc later.
+   -------------------------*/
+.cc-table .cc-col-item { width: var(--cc-item-w); }
+
+.cc-table .cc-col-left-stock,
+.cc-table .cc-col-right-stock,
+.cc-table .cc-col-left-q1,
+.cc-table .cc-col-right-q1,
+.cc-table .cc-col-left-q2,
+.cc-table .cc-col-right-q2,
+.cc-table .cc-col-left-rate,
+.cc-table .cc-col-right-rate {
+  width: var(--cc-col-w);
+}
+
+.cc-table .cc-col-left-amt,
+.cc-table .cc-col-right-amt {
+  width: var(--cc-amt-w);
+}
+
+/* responsive reductions */
+@media (max-width: 1200px) {
+  :root { --cc-col-w: 100px; --cc-amt-w: 120px; --cc-item-w: 170px; }
+}
+@media (max-width: 980px) {
+  :root { --cc-col-w: 80px; --cc-amt-w: 96px; --cc-item-w: 140px; }
+}
+
+/* -------------------------
+   Header blocks (Left / Right)
+   - Make these THs behave like table-cells
+   - Give them a min-width so colSpan=5 has room:
+     min-width = 5 * per-column-width + small padding.
+   -------------------------*/
+.cc-table th.cc-header-left,
+.cc-table th.cc-header-right {
+  display: table-cell !important;
+  vertical-align: middle;
+  padding: 0; /* inner .cc-compare-header__inner provides the padding */
+  box-sizing: border-box;
+  /* 5 data columns * per-column width + small extra */
+  min-width: calc(5 * var(--cc-col-w) + 28px) !important;
+}
+
+/* make sure the THs of header row don't get collapsed */
+.cc-table thead tr { display: table-row !important; }
+
+/* -------------------------
+   Inner header layout (Left + Right boxes)
+   -------------------------*/
+.cc-compare-header__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;         /* prevent internal wrapping */
+  min-height: 48px;
+  white-space: nowrap;       /* avoid wrapping inside the header */
+background: linear-gradient(135deg, #F9C5D1 0%, #EAC4FF 50%, #D3A9FF 100%);
+  border-radius: 8px;
+  padding: 10px 14px;
+  border: 1px solid rgba(15,40,60,0.035);
+  box-sizing: border-box;
+}
+
+/* slightly different tone for right header */
+.cc-table th.cc-header-right .cc-compare-header__inner {
+background: linear-gradient(135deg, #B8F1F9 0%, #C7D9FF 50%, #D3C2FF 100%);
+}
+
+/* header title */
+.cc-compare-header__title {
+  font-weight: 800;
+  color: #173447;
+  font-size: 16px;
+}
+
+/* date inputs styling */
+.cc-compare-header__dates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cc-compare-header__dates input[type="date"] {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: #fff;
+  font-size: 13px;
+}
+.cc-compare-header__dates .cc-dash {
+  color: #7f8b98;
+  font-weight: 700;
+}
+
+/* -------------------------
+   SUBHEADS (Qty / Rate / Amount)
+   - Must behave like cells and sit side-by-side
+   -------------------------*/
+/* Ensure subhead THs behave like table-cells (not width:100% blocks) */
+.cc-table thead .cc-subhead {
+  display: table-cell !important;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: linear-gradient(180deg,#d4bff2,#cfe9f7);
+  color: #0f2b3b;
+  font-weight: 800;
+  text-align: center;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+/* -------------------------
+   Table body cell "pills"
+   -------------------------*/
+.cc-cell-pill {
+  display: inline-block;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #e8e5e5;
+  color: #12202a;       /* dark text */
+  box-shadow: 0 1px 0 rgba(255,255,255,0.6), inset 0 1px 0 rgba(255,255,255,0.6);
+  min-width: 44px;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+.cc-cell-type {
+  display: block; /* block for consistent width */
+  width: calc(var(--cc-item-w) ); /* fit inside the col with padding */
+  padding: 10px 14px;
+  border-radius: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;      /* bigger item name */
+  line-height: 1.1;
+  color: #2a0b2f;       /* strong dark for contrast */
+  background: linear-gradient(180deg,#fdeff6,#f2d8ec);
+  box-shadow: 6px 6px 0 rgba(107,73,163,0.06); /* subtle offset shadow to create a card look */
+  white-space: normal;
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+.cc-table tbody tr:hover td .cc-cell-pill {
+background: linear-gradient(135deg, #dbeef5 0%, #ded0f9 100%);
+color: #333;
+box-shadow: inset 0 0 4px rgba(120,120,255,0.25);
+
+  font-weight: 700;
+  font-size: 14px;
+  
+}
+
+/* -------------------------
+   Vertical separator ONLY between Left & Right
+   first RIGHT data column is the 7th column in your table (colgroup order)
+   -------------------------*/
+.cc-table tbody td:nth-child(7) {
+  position: relative;
+}
+
+.cc-table tbody td:nth-child(7)::before {
+  content: "";
+  position: absolute;
+  left: -7px;  /* centered inside the border-spacing */
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(to bottom, rgba(107,73,163,0.12), rgba(107, 73, 163, 0.774)); /* purple divider */
+  border-radius: 2px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* make sure header content shows above the divider */
+.cc-table thead th:nth-child(7) .cc-compare-header__inner,
+.cc-table thead th:nth-child(7) .cc-subhead {
+  position: relative;
+  z-index: 5;
+}
+
+/* -------------------------
+   Action bar and buttons
+   -------------------------*/
+.cc-actionbar {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.cc-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(180deg,#b084e6,#e0b7d0);
+  border: 1px solid rgba(0,0,0,0.06);
+  color: #273d46;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  line-height: 1;
+  box-sizing: border-box;
+}
+
+/* -------------------------
+   Smaller screen tweaks
+   -------------------------*/
+@media (max-width: 1100px) {
+  :root { --cc-col-w: 100px; --cc-amt-w: 120px; --cc-item-w: 160px; }
+  .cc-table { border-spacing: 10px 8px !important; }
+  .cc-table thead th:nth-child(7)::before,
+  .cc-table tbody td:nth-child(7)::before {
+    left: -5px;
+    width: 1px;
+    top: 4px;
+    bottom: 4px;
+  }
+
+  /* reduce panel height slightly on narrower screens */
+  :root { --cc-table-fixed-h: 460px; }
+  .cc-table-wrap { height: var(--cc-table-fixed-h); max-height: calc(var(--cc-table-fixed-h)); }
+}
+
+/* -------------------------
+   Typography
+   -------------------------*/
+.cc-table th,
+.cc-table td {
+  font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  color: #10202b;
+  font-size: 13px;
+}
+
+/* -------------------------
+   Accessibility / focus affordances (small helpers)
+   -------------------------*/
+.cc-export-btn:focus,
+.cc-export-btn:active {
+  outline: 2px solid rgba(255,255,255,0.12);
+  outline-offset: 2px;
+}
+
+/* small responsive tweak for panel header on mobile */
+@media (max-width: 680px) {
+  .cc-panel {
+    padding: 8px;
+    margin: 8px;
+    max-height: calc(100vh - 16px);
+  }
+  .cc-panel__header h3 { font-size: 16px; white-space: normal; word-break: break-word; }
+  :root { --cc-table-fixed-h: 520px; }
+  .cc-table-wrap { padding: 8px; height: var(--cc-table-fixed-h); }
+
+  /* stack the two panels vertically */
+  .bank-row-two__grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* cards take full width of the screen */
+  .bank-row-two__panel {
+    width: 100%;
+    margin: 0;
+  }
+
+  /* avoid horizontal overflow of the table */
+  .bank-row-two__table-wrap {
+    overflow-x: auto;
+  }
+
+  .bank-row-two__table {
+    min-width: 100%;
+  }
+
+  /* slightly smaller heading on mobile */
+  .bank-row-two__header h3 {
+    font-size: 15px;
+  }
+
+}
+
+/* end of file */
+
+
+
+/* helper text beside Compare — make it visible */
+.cc-actionbar small {
+  color: #f3eff3;  /* darker mauve that matches panel */
+  font-size: 14px;
+  opacity: 1;
+  line-height: 1.3;
+}

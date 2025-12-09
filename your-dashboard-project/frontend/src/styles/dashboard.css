@@ -1,0 +1,259 @@
+/* ===== Page & tokens ===== */
+:root{
+  --page-max: 1240px;
+  --page-padding: 16px;
+  --topbar-height: 0px;   /* adjust if you have a fixed header */
+}
+
+.page {
+  width: 100%;
+  padding: 0 20px  ; /* small padding only */
+}
+
+.section-title { color: #eaf0ff; font-weight: 700; font-size: 22px; }
+
+/* Card base (theme) */
+.card {
+  background: #132033;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.28);
+}
+
+/* ===== Utility: make an element bleed to page edges (no side gaps) ===== */
+.edge-to-page {
+  margin-left: calc(var(--page-padding) * -1);
+  margin-right: calc(var(--page-padding) * -1);
+  width: auto;
+}
+
+/* Optional: If you want true viewport-bleed, uncomment this.
+.app-wrapper.sidebar-hidden .edge-to-page {
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+*/
+
+
+
+
+/* ===== Sidebar states ===== */
+/* When sidebar is visible/hidden your content width changes automatically.
+   The edge-to-page utility ensures the bar always fills the content width.
+   If you previously had calc() hacks, you can delete them. */
+  /*.app-wrapper.sidebar-hidden .kpi-bar { /* keep sticky and full-width of content} */ 
+
+
+.app-wrapper.sidebar-hidden .kpi-bar.edge-to-page {
+  width: calc(100%); /* Full area */
+  transform: none;
+}
+
+
+
+
+
+
+
+
+
+/* =======================
+   PRODUCT PANEL (Top)
+   ======================= */
+
+.product-panel{
+  background:
+    linear-gradient(135deg, #3d2444 0%, #8b6198 55%, #e7ebff 100%);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* header + controls layout */
+.product-panel__header{
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: nowrap; /* will switch to wrap on small screens by media queries */
+}
+
+/* title */
+.product-panel__header h3{
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fae9f6;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* body that contains table/cards */
+.product-panel__body{
+  background: #ffffff;
+  border-radius: 12px;
+  min-height: 320px; /* smaller base for responsive flow */
+  padding: 10px;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+  box-sizing: border-box;
+}
+
+/* Scrolling area like other tables */
+.product-panel .row-two__table-wrap{
+  /* make this fluid but limit height on large screens */
+  max-height: 420px;
+  height: auto;
+  overflow: auto;
+  border-radius: 10px;
+}
+
+/* Header color - soft lavender */
+.product-panel .row-two__table thead th{
+  background: #d6d6ff;
+  color: #1e2138;
+  font-weight: 800;
+  padding: 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Sticky first column - refined blue */
+.product-panel .row-two__table .sticky-col{
+  background: #eaf1ff;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+
+/* individual cell active state */
+.product-panel .cell-click.is-active{
+  background: #e6e2ff;
+  border-color: #c0b7ff;
+  box-shadow: 0 4px 10px rgba(120,100,255,0.25);
+}
+
+
+/* make headers consistently layout their title + right-side controls */
+.product-panel__header,
+.row-two__header,
+.bottom-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+
+
+/* ========== Export button (prettier + responsive) ========== */
+
+/* prettier export button */
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(180deg, #ffffff10 0%, rgba(255,255,255,0.03) 60%);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.04);
+  backdrop-filter: blur(4px);
+  transition: transform .14s ease, box-shadow .14s ease, opacity .12s ease;
+  white-space: nowrap;
+  line-height: 1;
+  box-sizing: border-box;
+}
+
+/* icon inside button */
+.export-btn .export-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 14px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.06);
+}
+
+/* hover/focus effects */
+.export-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.28);
+  opacity: 1;
+}
+
+.export-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.22);
+}
+
+/* dark variant for product panel if you want a different tone */
+.product-panel .export-btn {
+  color: #fff;
+  border-color: rgba(255,255,255,0.18);
+}
+
+.export-btn .export-icon svg {
+  stroke: #ffffffcc;
+  transition: stroke 0.2s ease, transform 0.2s ease;
+}
+
+.export-btn:hover .export-icon svg {
+  stroke: #ffffff;
+  transform: translateY(-2px);
+}
+
+
+
+
+/* Phones and small screens */
+@media (max-width: 680px) {
+  .product-panel {
+    padding: 12px;
+    margin: 14px 0;
+  }
+  .product-panel__header { 
+    gap: 10px;
+    padding: 6px 12px;        /* gentle left/right padding */
+    margin-bottom: 8px; 
+  }
+  .product-panel__header h3 { font-size: 16px; flex-basis: 100%; }
+  /* stack header controls under title on tiny screens */
+  .product-panel__header .controls {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  /* Table becomes scrollable horizontally; reduce body height */
+  .product-panel__body { min-height: 220px; padding: 8px; }
+  .product-panel .row-two__table-wrap { max-height: 340px; }
+
+  /* export button smaller and optional full-width stacking */
+  .export-btn { padding: 6px 10px; font-size: 13px; gap: 6px; }
+  /* if you want button to be full-width on very small screens, uncomment next line */
+  /* .export-btn { display:block; width:100%; justify-content:center; } */
+}
+

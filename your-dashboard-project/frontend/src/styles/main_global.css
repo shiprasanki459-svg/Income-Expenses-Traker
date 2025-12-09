@@ -1,0 +1,118 @@
+/* ==========================
+   ✅ GLOBAL BASE STYLES
+   ========================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  background-color: #ffffff;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+/* ==========================
+   ✅ ROOT VARIABLES
+   ========================== */
+:root {
+  --sidebar-width: 210px;
+  --sidebar-collapsed-width: 80px;
+  --topbar-height: 80px;
+}
+
+/* ==========================
+   ✅ MAIN WRAPPER LAYOUT
+   ========================== */
+.app-wrapper {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ==========================
+   ✅ MAIN CONTENT (Page Area)
+   ========================== */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  /* sits beside the sidebar on desktop */
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+
+  /* always below fixed topbar */
+  padding-top: var(--topbar-height);
+
+  /* scrolling & height */
+  min-height: 100vh;
+  overflow: auto;
+
+  /* theme */
+  background: #ffffff; /* darker dashboard bg */
+  transition: margin-left 0.3s ease, width 0.3s ease;
+  box-sizing: border-box;
+}
+
+/* ✅ When sidebar is collapsed */
+.app-wrapper.sidebar-collapsed .main-content {
+  margin-left: var(--sidebar-collapsed-width);
+  width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+/* ✅ For page containers */
+.dashboard-wrapper {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+/* ✅ Page title text */
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f1e1e; /* ✅ visible text */
+}
+
+
+/* When sidebar is fully hidden, main takes full width */
+.app-wrapper.sidebar-hidden .main-content {
+  margin-left: 0 !important;
+  width: 100% !important;
+}
+
+
+/* ✅ Mobile Responsive */
+@media (max-width: 767px) {
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding-top: 70px !important; /* 🔹 if your mobile topbar height becomes 70px */
+  }
+}

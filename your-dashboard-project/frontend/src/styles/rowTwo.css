@@ -1,0 +1,355 @@
+/* ===== Row Two: Two-column soft panels under KPI ===== */
+.row-two { margin-top: 8px; }
+
+
+.row-two__grid{
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);  /* allow shrink */
+  gap: 18px;
+  align-items: stretch;
+}
+
+/* Panel card */
+.row-two__panel{
+  background: linear-gradient(135deg, rgba(20,38,66,0.95) 0%, rgba(21,48,88,0.95) 60%, rgba(23,69,138,0.95) 100%),
+    radial-gradient(60% 40% at 50% 0%, rgba(74,148,255,.18), transparent 60%);                   /* soft blush */
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow:
+    0 8px 22px rgba(0,0,0,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.45);
+}
+
+.row-two__header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.row-two__header h3{
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #dfe9f9; /* dark navy */
+}
+
+.row-two__body{
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  min-height: 260px;         /* visible height; adjust later */
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+
+/* ===== Sticky table inside the left white card ===== */
+.row-two__body {
+  padding: 10px;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  min-height: 260px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* Show BOTH scrollbars: fixed height + min-width on table */
+.row-two__table-wrap{
+  height: 260px;              /* fixed to force vertical scrollbar when content grows */
+  overflow: scroll;           /* always show both scrollbars (not auto) */
+  border-radius: 10px;
+}
+
+/* Optional: nicer scrollbars (supported browsers) */
+.row-two__table-wrap::-webkit-scrollbar{
+  height: 10px;
+  width: 10px;
+}
+.row-two__table-wrap::-webkit-scrollbar-thumb{
+  background: rgba(0,0,0,0.25);
+  border-radius: 8px;
+}
+.row-two__table-wrap::-webkit-scrollbar-track{
+  background: rgba(0,0,0,0.06);
+  border-radius: 8px;
+}
+
+/* Table base */
+.row-two__table{
+  width: max(100%, 380px);    /* ensures horizontal scrollbar on narrow containers */
+  border-collapse: separate;
+  border-spacing: 0 10px;     /* row gap like “cards” */
+  font-size: 14px;
+  color: #0f2236;
+}
+
+/* Column widths (tune as needed) */
+.col-type { width: 180px; }
+.col-num  { width: 140px; }
+.col-amt  { width: 180px; }
+
+/* Header (sticky) */
+.row-two__table thead th{
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #F7D7DC;            /* soft pink band like your ref */
+  color: #24324a;
+  font-weight: 800;
+  text-align: left;
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.05);
+}
+
+/* First column (Type) sticky strip */
+.row-two__table .sticky-col{
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #e1f4ff;            /* light aqua like the left “Date” rail */
+  box-shadow: 1px 0 0 rgba(0,0,0,0.07);
+}
+
+/* First header cell needs higher z-index */
+.row-two__table .sticky-head{
+  z-index: 4;
+  background: #f7bfc9;
+  box-shadow: 1px 0 0 rgba(0,0,0,0.08), inset 0 -1px 0 rgba(0,0,0,0.05);
+}
+
+/* Body row: use gaps and inner “pills” like input boxes */
+.row-two__table tbody tr td{
+  padding: 0 8px;                 /* space for the pills */
+  border: 0;                      /* borders handled by pill */
+  background: transparent;
+}
+
+/* pill inside each cell (rounded input look) */
+.cell-pill{
+  background: #E8E8E8;
+  border: 1px solid #E2EAF4;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* special styling for the sticky first column cells */
+.cell-type{
+  background: #f5fbff;
+  border-color: #cfe9ff;
+  font-weight: 700;
+}
+
+/* right-align big amounts if you like */
+.cell-right{
+  text-align: right;
+}
+
+/* Round the sticky column cell corners slightly more so it looks like the left “Date” chips */
+.row-two__table tbody tr td:first-child .cell-pill{
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+/* Make the header row edges rounded */
+.row-two__table thead th:first-child { border-top-left-radius: 8px; }
+.row-two__table thead th:last-child  { border-top-right-radius: 8px; }
+
+
+
+
+
+/* Clickable “Type” chip */
+.cell-click{
+  cursor: pointer;
+  transition: transform .06s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.cell-click:hover{
+  transform: translateY(-1px);
+  border-color: #9bd2ff;
+  box-shadow: 0 4px 12px rgba(0, 80, 140, 0.15), inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.cell-click.is-active{
+  background: #dff2ff;
+  border-color: #7cc7ff;
+}
+
+/* Optional highlight of the clicked row */
+.row-click td .cell-pill{
+  transition: background-color .15s ease;
+}
+.row-click:hover td .cell-pill{
+  background: #fbfdff;
+}
+
+
+
+
+
+/* Make TYPE column pill stretch full width like others */
+td.sticky-col .cell-pill {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* text left */
+}
+
+/* Make button behave same width inside first column */
+td.sticky-col .cell-click {
+  width: 100%;
+  text-align: left;
+}
+
+
+
+/* =======================
+   PANEL THEMES (Row Two)
+   ======================= */
+
+/* --- Left card: deep indigo --- */
+.panel--indigo {
+  background:
+    linear-gradient(135deg, #162842 0%, #466696 60%, #4c6eb0 100%),
+    radial-gradient(60% 40% at 50% 0%, rgba(86,140,255,.18), transparent 60%);
+}
+.panel--indigo .row-two__header h3 { color: #e8f0ff; }
+.panel--indigo .row-two__table thead th { background: #d9e6fd; color: #17253b; }
+.panel--indigo .row-two__table .sticky-col { background: #acc9f0; }
+
+/* --- Right card: teal/emerald --- */
+.panel--emerald {
+  background:
+    linear-gradient(135deg, #133936 0%, #1b6259 60%, #238378 100%),
+    radial-gradient(60% 40% at 50% 0%, rgba(70,220,180,.18), transparent 60%);
+}
+.panel--emerald .row-two__header h3 { color: #e6fffa; }
+.panel--emerald .row-two__table thead th { background: #b8ede3; color: #0f2b28; }
+.panel--emerald .row-two__table .sticky-col { background: #83f1da ; }
+
+/* Keep “pill” look consistent but allow slight tone tweak per panel if you want */
+/* Example (optional): */
+/* .panel--emerald .cell-pill { background:#eefaf7; border-color:#d5f2eb; } */
+
+
+
+.panel--emerald .cell-click.is-active{
+  background: #ccfef3;
+  border-color: #38d0af;
+  box-shadow: 0 4px 10px rgba(120,100,255,0.25);
+}
+
+
+
+
+
+
+@media (max-width:680px){
+  .row-two__table thead th,
+  .row-two__table .sticky-col,
+  .row-two__table .sticky-head {
+    /*position: relative !important;*/
+    left: auto !important;
+    top: auto !important;
+  }
+
+
+  .row-two__header {
+    display: flex;
+    flex-direction: row;       /* keep title + controls on same line */
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 12px;        /* gentle left/right padding */
+    margin-bottom: 8px;
+    flex-wrap: nowrap;        /* prefer not to wrap; will wrap if viewport too narrow */
+  }
+
+  /* title grows, but won't push controls away */
+  .row-two__header h3 {
+    flex: 1 1 auto;
+    font-size: 16px;
+    margin: 0;
+    white-space: normal;
+    line-height: 1.15;
+    min-width: 0;             /* allow truncation if needed */
+  }
+
+  /* controls (export btn) remains fixed size and aligned to right */
+  .row-two__header .controls {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* make export button compact but tall enough for touch; stays inline */
+  .row-two__header .export-btn,
+  .product-panel__header .export-btn {
+    padding: 8px 10px;
+    min-height: 36px;
+    font-size: 13px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ensure header won't force two-column layout */
+  .row-two__grid > * { min-width: 0; }
+
+  /* force the grid to single column (stack panels) */
+  .row-two__grid { grid-template-columns: 1fr !important; }
+
+  /* table wrapper: internal scrolling and proper vertical limits */
+  .row-two__table-wrap {
+    max-height: 40vh;                   /* keeps table from dominating viewport */
+    height: auto;
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;                /* give breathing room for scrollbar */
+  }
+
+  /* table: fill panel width but allow horizontal scroll for columns */
+  .row-two__table {
+    width: 100%;
+    min-width: 720px; /* keep columns readable — users can scroll horizontally inside panel */
+    font-size: 13px;
+    box-sizing: border-box;
+  }
+
+  /* Make the sticky/type column visually larger like desktop */
+  .col-type { width: 180px !important; }        /* bigger column width */
+  td.sticky-col .cell-pill {
+    padding: 12px 14px !important;               /* bigger pill padding */
+    font-size: 14px !important;
+    border-radius: 12px;
+  }
+
+  /* make first-column pill visually pronounced (keeps pill full width) */
+  td.sticky-col { min-width: 0; }
+  td.sticky-col .cell-pill { width: 100%; display:flex; align-items:center; }
+
+  /* avoid breaking sticky positioning unnecessarily — keep it relative if sticky misbehaves */
+  /* If sticky headers cause issues on your device, uncomment the next block to disable sticky on mobile:
+  .row-two__table thead th,
+  .row-two__table .sticky-col,
+  .row-two__table .sticky-head {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+  }
+  */
+
+  /* small visual polish for export icon */
+  .export-btn .export-icon { width: 18px; height: 18px; }
+
+}
+
+

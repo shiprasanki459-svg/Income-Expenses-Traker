@@ -1,0 +1,334 @@
+/* Cleaned & simplified KPI panel — compact, calm, dashboard-friendly */
+
+:root{
+  --card-radius: 16px;
+  --card-pad: 12px;
+  --card-maxw: 1240px;
+
+  /* softer shadows */
+  --card-shadow: 0 8px 20px rgba(8,15,28,0.12);
+  --box-shadow: 0 4px 12px rgba(8,15,28,0.08);
+
+  /* frosted panel tone */
+  --panel-frost: rgba(255,255,255,0.90);
+  --panel-frost-strong: rgba(255,255,255,0.97);
+}
+
+/* Outer container */
+.kpi-panel {
+  width: 100%;
+  padding: 12px 20px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+}
+
+/* Main card: single soft gradient + subtle radial glow */
+.kpi-panel__inner {
+  width: 100% ;
+  max-width: var(--card-maxw);
+  background:
+    linear-gradient(135deg, #201f33 0%, #3b2b66 45%, #8f9bef 100%);
+  border-radius: var(--card-radius);
+  padding: var(--card-pad);
+  box-shadow: var(--card-shadow);
+  border: 1px solid rgba(15,18,30,0.06);
+  position: relative;
+  overflow: visible;
+}
+
+/* Title row - keep small and dark text to contrast the card */
+.kpi-panel__title {
+  margin-bottom: 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.kpi-panel__title h2 {
+  margin: 0;
+  font-size: 20px;
+  color: rgba(245,245,250,0.95);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+/* small utility for controls at right of title */
+.kpi-panel__title .controls { display:inline-flex; gap:8px; align-items:center; }
+
+/* Base KPI box (compact) */
+.kpi-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 10px;
+  padding: 8px 10px;
+  box-shadow: var(--box-shadow);
+  color: #e5e7eb;
+  margin-bottom: 10px;
+  min-height: 52px;
+}
+
+
+/* columns inside summation - smaller pills, more compact */
+.summation-columns {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+  flex-direction: row;
+  justify-content: space-between;   /* push both sides to edges */
+  gap: 29px;
+}
+
+
+/* inner column: subtle frosted card (reduced brightness) */
+.summation-column {
+  flex: 1 1 50%;         /* each takes half of row */
+  min-width: 0;   
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(221, 221, 223, 0.94));
+  padding: 4px;
+  padding-left: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 2px rgba(8,15,28,0.06);
+    border: 5px solid rgba(148,163,184,0.35);
+  display: flex;
+  flex-direction: row;      /* keep title left + metrics right */
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+}
+
+/* make the left label block narrow and metrics area flexible */
+.summation-col-title { flex: 0 0 160px; margin: 0; color: #0b1220; font-size:14px; }
+.summation-metrics { flex: 1 1 auto; display:flex; gap:30px; justify-content:flex-end; margin-right: 10px; }
+
+/* metric pill: lower contrast, rounded */
+.summation-metric {
+  min-width: 120px;
+  padding: 4px;
+  margin-bottom: 2px;
+  margin-top: 4px;
+  border-radius: 10px;
+  background: linear-gradient(180deg,#ffffff,#f4f4f5);
+  box-shadow: 0 6px 18px rgba(8,15,28,0.2);
+  text-align: center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+}
+.metric-label { font-size:10px; color:#475569; font-weight:700; }
+.metric-value { font-size:14px; color:#0b1220; margin-top:6px; font-weight:900; }
+
+/* Balances area: single toned band with lighter inner panels */
+.kpi-box--balances {
+  background:  rgba(124, 147, 199, 0.85);
+  border: 5px solid rgba(148,163,184,0.35);
+  color: #e5e7eb;
+  padding: 10px;
+  min-height: 64px;
+  border-radius: 10px;
+  box-shadow: 0 6px 12px rgba(8,15,28,0.06);
+}
+
+/* layout for balances */
+.balances-row {
+  display:flex;
+  gap:12px;
+  width:100%;
+  align-items:center;
+}
+
+/* balance group: pale inner panel (subtle) */
+.balance-group {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(193, 192, 192, 0.92));
+      border: 5px solid rgba(148,163,184,0.35);
+
+  padding: 4px;
+  border-radius: 8px;
+  flex: 1 1 0;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+  color: #08121a;
+}
+
+/* balance heading & table */
+.balance-heading {
+  font-size: 14px;
+  font-weight: 700;
+  color: #763923;
+  text-align: center;
+  margin-bottom: 5px;
+
+}
+.balance-table {
+  width:100%;
+  border-collapse: collapse;
+  color: #2c3744;
+  margin: 4px;
+}
+
+.balance-table thead th {
+  font-size:12px;
+  font-weight:700;
+  text-align:center;
+  opacity: 0.84;
+  padding:5px 8px;
+  background: transparent;
+  color:#334a65;
+}
+.balance-table tbody td {
+  font-size:14px;
+  font-weight:700;
+  padding: 4px;
+  color:#07101a;
+  text-align: center;
+}
+
+/* reduce spacer width so row looks tight */
+.balance-spacer { width: 10px; flex: 0 0 10px; }
+
+/* right-side compact KPI number area (if used) */
+.kpi-box__content { display:flex; align-items:center; justify-content:flex-end; width: 120px; min-width: 90px; }
+.kpi-box__content .kpi-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.95);
+}
+
+/* bottom small muted boxes — neutral, low-contrast */
+.kpi-bottom-row {
+  display:flex;
+  gap:25px;
+  margin-top:8px;
+}
+.kpi-box--muted {
+  background:linear-gradient(180deg, rgba(255,255,255,0.94), rgba(207, 204, 204, 0.92));
+    border: 5px solid rgba(148,163,184,0.35);
+
+  color: #12202a;
+  box-shadow: 0 3px 8px rgba(8,15,28,0.03);
+  padding:8px 10px;
+  border-radius:8px;
+  flex:1;
+  min-height:44px;
+  display:flex;
+  align-items:center;
+}
+
+/* mini info */
+.mini-info {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  gap:8px;
+}
+.mini-info__label { font-size:13px; font-weight:700; color:#17202a; }
+.mini-info__amount { display:flex; flex-direction:column; align-items: flex-end; gap:4px; }
+.mini-info__amount-title { font-size:11px; font-weight:700; color:#475569; opacity:0.9; }
+.mini-info__amount-value { font-size:14px; font-weight:800; color:#0b1220; }
+
+/* compress margins so KPI section is shorter */
+.kpi-panel__inner > * { margin-bottom: 8px; }
+.kpi-box, .kpi-box--balances, .kpi-box--summation { margin-bottom: 8px; }
+
+
+/* gradient blue underline */
+.kpi-row {
+  position: relative;
+  padding-bottom: 12px;
+  margin-bottom: 17px;
+}
+
+.kpi-row::after {
+  content: "";
+  position: absolute;
+  left: 300px;
+  right: 300px;
+  bottom: 0;
+
+  height: 2px; /* thickness, just like your screenshot */
+  border-radius: 2px;
+
+  background: linear-gradient(90deg, #0ea5e9, #f8f9fa); 
+  /* cyan → blue gradient (EXACT vibe from screenshot) */
+
+  opacity: 0.95;
+}
+
+
+
+/* responsive */
+@media (max-width: 980px) {
+  .balances-row { flex-direction: column; }
+  .summation-columns { flex-direction: column; }
+  .kpi-bottom-row { flex-direction: column; }
+  .kpi-box__content { width: auto; justify-content:flex-start; }
+}
+@media (max-width: 620px) {
+  .kpi-panel__title h2 { font-size: 15px; }
+  .metric-value { font-size:13px; }
+  .mini-info__label { font-size:13px; }
+  .kpi-box { min-height: 48px; padding: 8px 10px; }
+
+  /* stack Left / Right vertically and tighten spacing */
+  .summation-columns {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .summation-column {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 8px 10px;
+    padding-left: 10px; /* remove big desktop indent */
+  }
+
+  /* title full width on top */
+  .summation-col-title {
+    flex: 0 0 auto;
+    width: 100%;
+    margin: 0 0 6px 0;
+    text-align: left;
+  }
+
+  /* metrics wrap and use full width */
+  .summation-metrics {
+    flex: 1 1 auto;
+    width: 100%;
+    margin-right: 0;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  /* each metric can take half width, shrink nicely */
+  .summation-metric {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 0;
+  }
+}
+
+
+
+.kpi-input {
+  width: 100%;
+  max-width: 90px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(148,163,184,0.8);
+  background: rgba(255,255,255,0.9);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+  outline: none;
+}
+
+.kpi-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37,99,235,0.4);
+}

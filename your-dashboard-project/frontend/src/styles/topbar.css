@@ -1,0 +1,262 @@
+/* ===== Topbar ===== */
+       .topbar {
+            background-color: #252836;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--topbar-height);
+            z-index: 1000;
+            width: calc(100% - var(--sidebar-width));
+            transition: left 0.3s ease, width 0.3s ease;
+            box-sizing: border-box;
+
+        }
+
+        .topbar .left {
+            display: flex;
+            align-items: center;
+        }
+        .topbar .left i {
+            font-size: 25px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .topbar .search-box {
+            background-color: #2D2F40;
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .topbar .search-box input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            outline: none;
+        }
+        .topbar .right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+
+        /* ===== Parent Filter Box ===== */
+        .filter-box {
+            display: flex;
+            flex-direction: column;
+            background: #40414f;
+            padding: 4px 8px;
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .filter-heading {
+            font-size: 10px;
+            font-weight: 600;
+            color: #ddd;
+            margin-bottom: 6px;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-blocks {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* ===== Filter Block Containers ===== */
+        .date-range-filter,
+        .month-year-filter,
+        .year-only-filter {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #bdbdbbb5;
+            padding: 4px 8px;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* ===== Common Inputs & Selects ===== */
+        .date-range-filter input,
+        .month-year-filter select,
+        .month-year-filter input,
+        .year-only-filter input {
+            padding: 4px 8px;
+            font-size: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+            transition: all 0.2s ease;
+        }
+        .date-range-filter input:focus,
+        .month-year-filter select:focus,
+        .month-year-filter input:focus,
+        .year-only-filter input:focus {
+            border-color: #1b3b5f;
+            background: #fff;
+            outline: none;
+            box-shadow: 0 0 4px rgba(27, 59, 95, 0.3);
+        }
+
+        /* ===== Buttons ===== */
+        .date-range-filter button,
+        .month-year-filter button,
+        .year-only-filter button {
+            padding: 4px 10px;
+            font-size: 10px;
+            border-radius: 20px;
+            background: #1b3b5f;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+        .date-range-filter button:hover,
+        .month-year-filter button:hover,
+        .year-only-filter button:hover {
+            background: #244d7d;
+            transform: scale(1.05);
+        }
+
+        .filter-pill{
+            margin-left:8px; padding:2px 8px; border-radius:999px;
+            font-size:12px; border:1px solid #9bb; background:#eef; color:#334;
+            white-space:nowrap;
+        }
+
+/* When sidebar is hidden, topbar spans full width */
+.app-wrapper.sidebar-hidden .main-content .topbar {
+  left: 0 !important;
+  width: 100% !important;
+}
+
+
+/* ===== Filter icon button (hidden on desktop) ===== */
+.filter-toggle {
+  display: none;
+  margin-left: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: #2D2F40;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Backdrop behind the dropdown panel */
+.filters-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 999; /* below panel, above content */
+}
+
+
+
+/* Mobile: topbar should span full width regardless of sidebar state */
+@media (max-width: 767px) {
+  .main-content .topbar {
+    left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* When sidebar is open → topbar shifts same as sidebar width */
+  .app-wrapper.sidebar-open .main-content .topbar {
+    left: var(--sidebar-mobile-width) !important;
+    width: calc(100% - var(--sidebar-mobile-width)) !important;
+  }
+
+  .filter-toggle { 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 6px; 
+  }
+
+  /* keep main bar compact; filters are not inline */
+  .topbar { flex-wrap: nowrap; }
+
+  /* hide inline filter box by default on mobile */
+  .topbar .right .filter-box { display: none; }
+
+  /* when open -> show as dropdown below the topbar */
+  .topbar.filters-open .right .filter-box {
+    display: block;
+    position: absolute;
+    top: calc(var(--topbar-height));
+    left: 8px;
+    right: 8px;
+    margin-top: 6px;
+    background: #2D2F40;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 10px;
+    z-index: 1000; /* above backdrop */
+  }
+
+  /* tidy panel layout */
+  .topbar .filter-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    margin-bottom: 8px;
+    color: #ddd;
+  }
+
+  .topbar .filter-blocks {
+    display: flex !important;
+    flex-direction: column;
+    gap: 8px;
+    overflow: visible; /* no horizontal scroll inside the panel */
+  }
+
+  .topbar .date-range-filter,
+  .topbar .month-year-filter,
+  .topbar .year-only-filter {
+    background: #3a3d52;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 8px;
+    gap: 10px;
+  }
+
+  /* grid for inputs + Go buttons */
+  .topbar .date-range-filter,
+  .topbar .month-year-filter {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    align-items: center;
+  }
+  .topbar .year-only-filter {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  /* comfortable controls in the panel */
+  .topbar .date-range-filter input[type="date"],
+  .topbar .month-year-filter select,
+  .topbar .month-year-filter input[type="number"],
+  .topbar .year-only-filter input[type="number"] {
+    width: 100%;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  .topbar .date-range-filter button,
+  .topbar .month-year-filter button,
+  .topbar .year-only-filter button {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+}

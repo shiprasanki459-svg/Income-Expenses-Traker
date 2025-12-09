@@ -1,0 +1,163 @@
+/* ===== Bottom full-width panel ===== */
+.bottom-panel{
+  background: #eee1e4;
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 18px;
+  margin-bottom: 20px;
+  box-shadow:
+    0 8px 22px rgba(0,0,0,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.45);
+}
+
+.bottom-panel__header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  margin-right: 15px;
+}
+
+.bottom-panel__header h3{
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #132033;
+}
+
+.bottom-panel__body{
+  background: #ffffff;
+  border-radius: 12px;
+  min-height: 300px;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+
+
+
+/* Make the big panel body behave like row-two tables */
+.bottom-panel__body{
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  padding: 5px;
+}
+
+/* Slightly taller than row-two panels */
+.bottom-panel .row-two__table-wrap{
+  height: 320px;            /* visible area; scroll inside */
+  overflow: auto;
+  scrollbar-gutter: stable both-edges;
+  border-radius: 10px;
+}
+
+/* Optional: same header color and fonts already inherited
+   because we reuse .row-two__table classes */
+
+
+
+
+
+   /* =======================
+   PANEL THEME (Bottom)
+   ======================= */
+
+/* --- Bottom card: rose/sand --- */
+.panel--rose {
+  background:
+    linear-gradient(135deg, #3d1b28 0%, #5a2a3a 55%, #8f495e 100%),
+    radial-gradient(60% 40% at 50% 0%, rgba(255,128,170,.14), transparent 60%);
+  border-color: rgba(0,0,0,0.12);
+}
+.panel--rose .bottom-panel__header h3 { color: #ffe8ef; }
+
+/* Header band and sticky col inside the invoice table */
+.panel--rose .row-two__table thead th { background: #fff0f4; color: #2a1a22; }
+.panel--rose .row-two__table .sticky-col { background: #e9a4b4; }
+
+
+
+.bottom-panel .cell-click.is-active{
+  background: #f3b898;
+  border-color: #e19663;
+  box-shadow: 0 4px 10px rgba(120,100,255,0.25);
+}
+
+
+
+
+/* Mobile tweaks for Bottom Panel — paste into your CSS (<=680px) */
+@media (max-width: 680px) {
+
+  /* reduce outer padding so panel appears tighter */
+  .bottom-panel {
+    padding: 10px;
+    margin-top: 12px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+  }
+
+  /* header: slightly smaller title and tighter spacing */
+  .bottom-panel__header {
+    padding: 12px;
+    padding-right: 1px;
+    margin-bottom: 8px;
+  }
+  .bottom-panel__header h3 {
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.15;
+    margin: 0;
+  }
+
+  /* make the white inner body shorter and more compact */
+  .bottom-panel__body {
+    padding: 6px;
+    min-height: 160px;    /* lower visible min-height */
+    border-radius: 10px;
+  }
+
+  /* shrink the internal scroll area so it doesn't dominate viewport */
+  .bottom-panel .row-two__table-wrap {
+    height: auto;
+    max-height: 34vh;     /* responsive vertical limit */
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 6px;
+    border-radius: 8px;
+  }
+
+  /* reduce table font-size and spacing inside the bottom panel */
+  .bottom-panel .row-two__table {
+    font-size: 13px;
+    border-spacing: 0 8px;
+    width: 100%;
+    min-width: 640px;     /* keeps columns readable but allows internal horizontal scroll */
+    box-sizing: border-box;
+  }
+
+  /* tighten cell paddings and pill size */
+  .bottom-panel .row-two__table tbody td { padding: 6px 6px; }
+  .bottom-panel .cell-pill {
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+
+  /* compact clickable chips */
+  .bottom-panel .cell-click { padding: 6px 8px; }
+
+  /* reduce top/bottom space for the table header */
+  .bottom-panel .row-two__table thead th {
+    padding: 8px 8px;
+    font-size: 13px;
+  }
+
+  /* reduce scrollbar chrome on mobile */
+  .bottom-panel .row-two__table-wrap::-webkit-scrollbar { height: 8px; width: 8px; }
+  .bottom-panel .row-two__table-wrap::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 6px; }
+
+}

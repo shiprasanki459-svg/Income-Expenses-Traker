@@ -1,0 +1,537 @@
+/* src/styles/bankPage.css
+   Bank-statement page styles — darker vintage-brown palette
+   Palette: #2E150B, #6B2F17, #8F532F, #B99E94, #D1C2BD
+   ONLY colours changed — layout/spacing untouched
+*/
+
+/* ========== Page panels base ========== */
+.bank-product-panel,
+.bank-row-two__panel,
+.bank-bottom-panel {
+  border-radius: 14px;
+  padding: 12px;
+  margin: 18px 8px;
+  box-shadow:
+    0 8px 20px rgba(24,16,12,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+  border: 1px solid rgba(40,28,20,0.12);
+
+  /* outer panel gradient using the darker browns */
+  background: linear-gradient(180deg, rgba(46,21,11,0.96) 0%, rgba(107,47,23,0.96) 45%, rgba(143,83,47,0.96) 100%);
+}
+
+/* Product panel: make table area taller */
+.bank-product-panel .bank-row-two__table-wrap {
+  height: 400px;   /* pick your value */
+}
+
+
+/* ========== Panel header / title ========== */
+.bank-product-panel__header,
+.bank-row-two__header,
+.bank-bottom-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.bank-product-panel__header h3
+ {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #e8d8d2; /* light warm text for contrast on dark header */
+  letter-spacing: 0.2px;
+}
+
+.bank-row-two__header h3{
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #ece2df; /* light warm text for contrast on dark header */
+  letter-spacing: 0.2px;
+}
+
+.bank-bottom-panel__header h3{
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #D1C2BD; /* light warm text for contrast on dark header */
+  letter-spacing: 0.2px;
+}
+
+
+/* ========== Inner body (card) ========== */
+/* inner card uses soft taupe gradient so pills remain readable */
+.bank-product-panel__body,
+.bank-row-two__body,
+.bank-bottom-panel__body {
+  background: linear-gradient(180deg, #D1C2BD 0%, #B99E94 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(40,28,20,0.06);
+  min-height: 220px;
+  padding: 10px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.95);
+  color: #2f2418;
+}
+
+
+
+/* ========== Grid: keep two-column layout ========== */
+.bank-row-two {
+  margin: 0 8px;
+}
+.bank-row-two__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .bank-row-two__grid { grid-template-columns: 1fr; }
+}
+
+/* ========== Table wrapper + scroll area ========== */
+.bank-row-two__table-wrap,
+.bank-bottom-panel .bank-row-two__table-wrap {
+  height: 260px;
+  overflow: auto;
+  border-radius: 8px;
+  scrollbar-gutter: stable both-edges;
+}
+
+/* scrollbars (darker) */
+.bank-row-two__table-wrap::-webkit-scrollbar,
+.bank-bottom-panel .bank-row-two__table-wrap::-webkit-scrollbar {
+  height: 10px; width: 10px;
+}
+.bank-row-two__table-wrap::-webkit-scrollbar-thumb,
+bank-bottom-panel .bank-row-two__table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(48,34,26,0.48);
+  border-radius: 8px;
+}
+.bank-row-two__table-wrap::-webkit-scrollbar-thumb,
+.bank-bottom-panel .bank-row-two__table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(48,34,26,0.48);
+}
+.bank-row-two__table-wrap::-webkit-scrollbar-track,
+bank-bottom-panel .bank-row-two__table-wrap::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.06);
+  border-radius: 8px;
+}
+.bank-row-two__table-wrap::-webkit-scrollbar-track,
+.bank-bottom-panel .bank-row-two__table-wrap::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.06);
+  border-radius: 8px;
+}
+
+/* ========== Table base ========== */
+.bank-row-two__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+  font-size: 14px;
+  color: #2b2b2b;
+}
+
+/* column widths utility */
+.bank-row-two__table .col-type { width: 220px; max-width: 220px; }
+.bank-row-two__table .col-num  { width: 140px; }
+.bank-row-two__table .col-amt  { width: 180px; }
+
+/* ========== Sticky header & sticky column ========== */
+/* uniform table header colour (no odd/even) — soft warm taupe */
+.bank-row-two__table thead th {
+  position: sticky; top: 0; z-index: 4;
+  background: #D1C2BD; /* uniform header color */
+  color: #3a2a1f;
+  font-weight: 700;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(60,40,28,0.08);
+}
+
+/* first column sticky (light sand gradient) */
+.bank-row-two__table .sticky-col {
+  position: sticky; left: 0; z-index: 5;
+  background: linear-gradient(180deg, #F8F0E4 0%, #F4E8DA 100%);
+  box-shadow: 1px 0 0 rgba(0,0,0,0.06);
+}
+
+/* special first header cell (sticky-head): mocha band */
+.bank-row-two__table .sticky-head {
+  z-index: 7;
+  background: linear-gradient(180deg, #2E150B 0%, #6B2F17 60%, #8F532F 100%); /* chocolate -> caramel */
+  color: #FFF7EE;
+  font-weight: 800;
+  box-shadow: 1px 0 0 rgba(0,0,0,0.08), inset 0 -1px 0 rgba(0,0,0,0.06);
+}
+
+/* ========== Cells / pills ========== */
+.bank-row-two__table tbody tr td { padding: 6px 8px; background: transparent; border: 0; }
+.bank-row-two__table .cell-pill {
+  background: linear-gradient(180deg, #FFF6E9 0%, #F7E7D0 100%);
+  border: 1px solid rgba(90,60,40,0.06);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #3b2a20;
+}
+
+/* left name pills — subtle warm */
+.bank-row-two__table .cell-type {
+  background: linear-gradient(180deg, #F6E8D1 0%, #F0DDBF 100%);
+  border-color: rgba(135,95,60,0.10);
+  font-weight: 700;
+  color: #3a220f;
+}
+
+/* right numeric alignment */
+.bank-row-two__table .cell-right { text-align: right; }
+
+/* rounded left-first pill */
+.bank-row-two__table tbody tr td:first-child .cell-pill {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+/* header corners */
+.bank-row-two__table thead th:first-child { border-top-left-radius: 8px; }
+.bank-row-two__table thead th:last-child  { border-top-right-radius: 8px; }
+
+/* ========== Clickable chips: hover & active ========== */
+.bank-row-two__table .cell-click {
+  cursor: pointer;
+  transition: transform .08s ease, box-shadow .14s ease, border-color .14s ease, background .12s ease;
+}
+.bank-row-two__table .cell-click:hover {
+  transform: translateY(-2px);
+  border-color: rgba(170,110,70,0.28);
+  box-shadow: 0 8px 20px rgba(40,24,12,0.10);
+}
+
+/* active chip: warm mid-brown -> taupe gradient */
+.bank-row-two__table .cell-click.is-active {
+  background: linear-gradient(180deg, #e5bda4 0%, #d2cac7 100%);
+  border-color: rgba(120,70,30,0.95);
+  box-shadow: 0 12px 30px rgba(160,100,40,0.12);
+  color: #2a1608;
+}
+
+/* hovered row subtle change */
+.bank-row-two__table .row-click td .cell-pill { transition: background-color .15s ease; }
+.bank-row-two__table .row-click:hover td .cell-pill { background: #FFF8EE; }
+
+/* sticky-col chips full width */
+.bank-row-two__table td.sticky-col .cell-pill { width: 100%; display:flex; align-items:center; justify-content:flex-start; }
+
+
+
+
+
+
+/* ========== Panel-specific accents (vintage-brown) ========== */
+
+/* Top Product panel header: uniform deeper mocha band */
+.bank-product-panel {
+  background: linear-gradient(90deg, #000000 0%, #301914 60%,  #65382d 100%);
+  border-color: rgba(24,4,4,0.6);
+}
+
+
+
+
+
+
+/* Left middle panel (panel--indigo) -> darker mocha */
+.bank-row-two__panel.panel--indigo {
+  background: linear-gradient(90deg, #472118 0%,  #633c2c 50%, #8a6455 100%);
+  border-color: rgba(93,56,47,0.4);
+}
+
+
+
+
+
+/* Right middle panel (panel--emerald) -> golden-sand darker */
+.bank-row-two__panel.panel--emerald {
+  background: linear-gradient(90deg, #a16148 0%, #c0866f 75%, #e6b9ab 100%);
+  border-color: rgba(168,110,88,0.4);
+}
+
+
+
+
+
+
+/* Bottom invoice (panel--rose) -> deep amber/mocha band */
+.bank-bottom-panel.panel--rose {
+  background: linear-gradient(90deg, #4e1011 0%,#80171b 80%,#aa4041 100%);
+  border-color: rgba(118,15,19,0.6);
+}
+
+.bank-bottom-panel.panel--rose .bank-bottom-panel__header h3 { color: #FFF6E8; }
+
+/* tweak invoice table header & sticky-col for contrast */
+.bank-bottom-panel.panel--rose .bank-row-two__table thead th { background: #F4E3CB; color: #3b2716; }
+.bank-bottom-panel.panel--rose .bank-row-two__table .sticky-col { background: #FFF1DB; }
+
+/* ========== Small responsive tweak ========== */
+@media (max-width: 680px) {
+  .bank-row-two__table-wrap { max-height: 40vh; height: auto; overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+  .bank-row-two__table { width: 100%; min-width: 680px; font-size: 13px; }
+  .bank-row-two__header h3 { font-size: 16px; }
+  td.sticky-col .cell-pill { padding: 12px 14px !important; font-size: 14px !important; border-radius: 12px; }
+}
+
+
+
+
+
+
+
+/* === Product panel: header colors based on black gradient === */
+.bank-product-panel .bank-row-two__table thead th {
+  background: linear-gradient(180deg, #2b1715 0%, #5D382F 100%);
+  color: #FBE6DE;              /* light warm text */
+  border-bottom: 1px solid rgba(0,0,0,0.35);
+}
+/* Make sticky-head same as other headers (no different color) */
+.bank-product-panel .bank-row-two__table .sticky-head {
+  background: linear-gradient(180deg, #2b1715 0%, #5D382F 100%);
+  color: #FBE6DE;
+  box-shadow: 1px 0 0 rgba(0,0,0,0.4), inset 0 -1px 0 rgba(0,0,0,0.25);
+}
+/* === Product panel: inner pill colors === */
+.bank-product-panel .bank-row-two__table .cell-pill {
+  background: linear-gradient(180deg, #F4E1D8 0%, #E8CFC2 100%);
+  border-color: rgba(93,56,47,0.45);
+  color: #3a211c;
+}
+.bank-product-panel .bank-row-two__table .cell-type {
+  background: linear-gradient(180deg, #F2D1C0 0%, #E4BCA5 100%);
+  border-color: rgba(138,84,71,0.7);
+  color: #2b1512;
+}
+/* active chip inside product panel – use warm brown → soft red from palette */
+.bank-product-panel .bank-row-two__table .cell-click.is-active {
+  background: linear-gradient(180deg, #A86E58 0%, #760F13 100%);
+  border-color: rgba(73,9,12,0.9);
+  color: #FFEAE3;
+  box-shadow: 0 12px 30px rgba(118,15,19,0.35);
+}
+
+
+/* ============================================
+   TYPE WISE PANEL (panel--indigo)
+   Clean, modern, inspired by the blue screenshot
+   ============================================ */
+
+/* Outer stays your brown gradient */
+.bank-row-two__panel.panel--indigo {
+  background: linear-gradient(90deg, #472118 0%, #633c2c 50%, #8a6455 100%);
+  border-color: rgba(93,56,47,0.45);
+}
+
+/* === Inner body – clean light base like inspiration === */
+.bank-row-two__panel.panel--indigo .bank-row-two__body {
+  background: linear-gradient(180deg, #F8F3EC 0%, #F3E7DB 100%);
+  border: 1px solid rgba(140,100,80,0.18);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* === TABLE BASE — clean white-ish like inspo === */
+.bank-row-two__panel.panel--indigo .bank-row-two__table {
+  background: transparent;
+}
+
+/* === HEADER (Type / Amount / Qty) — smooth beige === */
+.bank-row-two__panel.panel--indigo .bank-row-two__table thead th {
+  background: #f7e2c9; 
+  color: #4B2E22;
+  font-weight: 800;
+  border-bottom: 1px solid rgba(80,50,30,0.18);
+}
+
+/* Sticky-head same tone */
+.bank-row-two__panel.panel--indigo .bank-row-two__table .sticky-head {
+  background: linear-gradient(180deg, #EFE4D8 0%, #ca7c2d 100%);
+  color: #4B2E22;
+  font-weight: 800;
+  box-shadow: 1px 0 0 rgba(0,0,0,0.15), inset 0 -1px 0 rgba(0,0,0,0.1);
+}
+
+/* Sticky first column — softly highlighted */
+.bank-row-two__panel.panel--indigo .bank-row-two__table .sticky-col {
+  background: #c7b0a0 ;
+}
+
+/* === DEFAULT PILLS — soft rounded beige like inspo === */
+.bank-row-two__panel.panel--indigo .bank-row-two__table .cell-pill {
+  background: linear-gradient(180deg, #FBF3E8 0%, #eeceaf 100%);
+  border: 1px solid rgba(140,100,80,0.25);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #3E261B;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+/* === LEFT “TYPE” cells — slightly emphasized === */
+.bank-row-two__panel.panel--indigo .bank-row-two__table .cell-type {
+  background: linear-gradient(180deg, #F6E8D7 0%, #EFD9C3 100%);
+  border: 1px solid rgba(160,110,80,0.35);
+  color: #2d160e;
+  font-weight: 700;
+}
+
+/* === ACTIVE CELL — soft dark-beige highlight (not too dark) === */
+.bank-row-two__panel.panel--indigo .bank-row-two__table .cell-click.is-active {
+  background: linear-gradient(180deg, #EFE4D8 0%, #8a725c 100%);
+  border-color: rgba(120,80,60,0.9);
+  color: #050404;
+  box-shadow: 0 6px 16px rgba(90,60,40,.25);
+  font-size: 14px;
+  font-weight: 800;
+
+}
+
+
+
+
+
+/* ============================================
+   PARTY WISE PANEL (panel--emerald)
+   Soft golden-peach version of Type Wise box
+   ============================================ */
+
+/* Outer stays your gradient, so only inner parts are customised */
+.bank-row-two__panel.panel--emerald .bank-row-two__body {
+  background: linear-gradient(180deg, #FFF7EC 0%, #FBE7D3 100%);
+  border: 1px solid rgba(180,115,80,0.20);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* Table base */
+.bank-row-two__panel.panel--emerald .bank-row-two__table {
+  background: transparent;
+}
+
+/* Header row (Party Wise / Amount) */
+.bank-row-two__panel.panel--emerald .bank-row-two__table thead th {
+  background: #f4d5af;
+  color: #5A341D;
+  font-weight: 800;
+  border-bottom: 1px solid rgba(130,80,40,0.22);
+}
+
+/* Sticky head – slightly stronger golden band */
+.bank-row-two__panel.panel--emerald .bank-row-two__table .sticky-head {
+  background: #eeb385 100%;
+  color: #2F180D;
+  font-weight: 800;
+  box-shadow: 1px 0 0 rgba(0,0,0,0.18), inset 0 -1px 0 rgba(0,0,0,0.12);
+}
+
+/* Sticky first column highlight */
+.bank-row-two__panel.panel--emerald .bank-row-two__table .sticky-col {
+    background:#efb799 ;
+
+}
+
+/* Default pills */
+.bank-row-two__panel.panel--emerald .bank-row-two__table .cell-pill {
+  background: linear-gradient(180deg, #FFF7EC 0%, #f6d2ad 100%);
+  border: 1px solid rgba(185,120,80,0.28);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #4A2A18;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+/* Left “Party Wise” chips */
+.bank-row-two__panel.panel--emerald .bank-row-two__table .cell-type {
+  background: linear-gradient(180deg, #f3ebe5 0%, #f9cfa9 100%);
+  border-color: rgba(190,120,75,0.45);
+  color: #2A140A;
+  font-weight: 700;
+}
+
+/* Active chip – deeper amber highlight */
+.bank-row-two__panel.panel--emerald .bank-row-two__table .cell-click.is-active {
+  background: linear-gradient(180deg, #f1e3cf 0%, #ba6325 100%);
+  border-color: rgba(140,70,30,0.95);
+  color: #160A04;
+  box-shadow: 0 6px 18px rgba(150,80,35,0.30);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+
+
+/* ============================================
+   INVOICE PANEL (panel--rose)
+   Soft light-maroon interior
+   ============================================ */
+
+/* Inner body – light maroon tint */
+.bank-bottom-panel.panel--rose .bank-bottom-panel__body {
+  background:  #fbdfe2 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(130,50,60,0.22);
+  padding: 12px;
+}
+
+/* Table base */
+.bank-bottom-panel.panel--rose .bank-row-two__table {
+  background: transparent;
+}
+
+/* Header row – soft maroon beige */
+.bank-bottom-panel.panel--rose .bank-row-two__table thead th {
+  background: linear-gradient(360deg, #F5DEE1 0%, #9a515c 100%);
+  color: #58262E;
+  font-weight: 800;
+  border-bottom: 1px solid rgba(100,40,50,0.22);
+}
+
+/* Sticky head – slightly deeper dusty maroon */
+.bank-bottom-panel.panel--rose .bank-row-two__table .sticky-head {
+  background: linear-gradient(180deg, #E8BFC7 0%, #D78E98 100%);
+  color: #341318;
+  box-shadow: 1px 0 0 rgba(0,0,0,0.15), inset 0 -1px 0 rgba(0,0,0,0.1);
+}
+
+/* Sticky first column */
+.bank-bottom-panel.panel--rose .bank-row-two__table .sticky-col {
+  background: #80171b; /* soft maroon tint */
+  color: white;
+}
+
+/* Default pills – warm dusty-maroon neutrals */
+.bank-bottom-panel.panel--rose .bank-row-two__table .cell-pill {
+  background: linear-gradient(180deg, #FAF2F3 0%, #ebd4d8 100%);
+  border: 1px solid rgba(145,70,85,0.25);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #432128;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+/* First column (#) – stronger maroon tint */
+.bank-bottom-panel.panel--rose .bank-row-two__table .cell-type {
+  background: linear-gradient(180deg, #f5e8ea 0%, #9a515c 100%);
+  border-color: rgba(150,70,85,0.55);
+  color: #2F1319;
+  font-weight: 700;
+}
+
+

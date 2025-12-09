@@ -1,0 +1,525 @@
+/* ====== Login page: updated to match first image ====== */
+
+.login-page {
+  min-height: 100vh;
+  background-image: url('https://img.freepik.com/free-photo/abstract-background-with-dark-blue-grunge-texture_1048-20452.jpg?semt=ais_hybrid&w=740&q=80'); /* public path */
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat; 
+   display: flex;
+  align-items: center;
+  justify-content: left;
+  padding: 48px 58px;
+  box-sizing: border-box;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 900px;            /* increase overall card width */
+  display: grid;
+  /* make left column slightly larger: left gets a minimum width and can grow; right keeps a max */
+  grid-template-columns: minmax(420px, 1fr) minmax(360px, 520px);
+  gap: 0;
+  border-radius: 18px;
+  overflow: visible;
+  box-shadow: 0 40px 80px rgba(14, 48, 97, 0.45);
+  background: transparent;
+  align-items: center;
+  position: relative;
+  padding: 28px;
+  box-sizing: border-box;
+}
+
+/* Large inner white card to match the framed card in image #1 */
+.login-card::before{
+  /* subtle background frame behind panels creates that white card look */
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,1));
+  box-shadow: 0 18px 50px rgba(6,30,78,0.25);
+  z-index: 0;
+    pointer-events: none;
+
+}
+
+/* left blue panel - remove external margins; use border-radius and internal padding */
+.login-left {
+  position: relative;
+  z-index: 2;
+  padding: 56px 35px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  color: #fff;
+  background: linear-gradient(10deg, #081d36 0%, #194677 65%, #4a84db 100%);
+  border-radius: 18px;
+  min-height: 390px;
+  overflow: hidden;
+  /* no external margin — the frame padding handles spacing */
+  margin: 0;
+}
+
+/* create the white semi-circle divider on the left edge of right panel */
+/* right panel - remove external margin; control semicircle with smaller overlap */
+.login-right {
+  position: relative;
+  z-index: 3;
+  margin: 0;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 10px 30px rgba(2,18,41,0.06);
+  box-sizing: border-box;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  --signin-offset: 20px; /* offset used by form position */
+}
+
+/* semicircle divider — smaller and responsive so it won't force overflow */
+.login-right::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * min(6vw, 60px)); /* responsive overlap value */
+  top: 20px;
+  width: min(20vw, 130px);
+  height: min(40vw, 340px);
+  background: #ffffff;
+  border-radius: 50%;
+  z-index: 2;
+  box-shadow: 0 8px 20px rgba(2,18,41,0.06);
+  pointer-events: none;
+}
+
+
+/* keep inner children above semicircle */
+.login-right > *,
+.login-left > * { position: relative; z-index: 4; }
+
+
+
+/* reduce the visual corner radius near the curve (so curve sits nicely) */
+.login-left,
+.login-right { overflow: visible; }
+
+/* left-inner content container (text in left panel) */
+.left-inner {
+  /*position: relative;
+  z-index: 5;*/
+  max-width: 560px;
+}
+
+/* Left text style (crisper and more contrast-safe) */
+.welcome-title {
+  font-size: 38px;
+  letter-spacing: 1.2px;
+  margin: 0 0 10px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.6),
+    0 0 18px rgba(0, 40, 90, 0.4),
+    0 0 25px rgba(74, 132, 219, 0.4); /* deep and soft glow */
+}
+
+.welcome-sub {
+  margin: 0 0 12px;
+  font-weight: 700;
+  color: #dce8ff; /* lighter than before */
+  text-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.55),
+    0 0 15px rgba(74, 132, 219, 0.3);
+}
+
+.welcome-desc {
+  margin: 0 0 18px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #f9fbff; /* pure neutral white */
+  text-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.55),
+    0 0 12px rgba(0, 40, 90, 0.3);
+  max-width: 360px;
+}
+
+/* Decorative circles (larger and softer) */
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(0.4px) drop-shadow(0 8px 30px rgba(8,40,92,0.28));
+  background: rgba(255,255,255,0.06);
+  box-shadow: inset -8px -8px 40px rgba(0,0,0,0.08);
+  z-index: 3;
+}
+.circle-lg {
+  width: 180px;
+  height: 180px;
+  right: -60px;
+  bottom: -20px;
+  background: radial-gradient(
+    circle at 40% 40%,
+    rgba(120, 170, 255, 0.45),   /* bright soft blue center */
+    rgba(25, 70, 119, 0.15) 60%, /* blends with mid background */
+    rgba(8, 29, 54, 0) 100%      /* fades into dark navy */
+  );
+  opacity: 0.95;
+}
+.circle-md {
+  width: 110px;
+  height: 110px;
+  left: -20px;
+  bottom: 20px;
+  background: radial-gradient(
+      circle at 30% 30%,
+      rgba(90, 150, 255, 0.38),    /* lighter blue core */
+      rgba(30, 70, 120, 0.18) 55%, /* mid blend */
+      rgba(8, 29, 54, 0) 100%      /* transparent edge */
+    );
+}
+.circle-sm {
+  width: 50px;
+  height: 50px;
+  right: 29px;
+  top: 25px;
+  background: radial-gradient(
+      circle at 40% 40%,
+      rgba(200, 230, 255, 0.55),   /* soft light highlight */
+      rgba(25, 70, 119, 0.2) 60%,
+      rgba(8, 29, 54, 0) 100%
+    );
+}
+
+
+
+.show-btn { background:transparent; border:0; color:#0b63c7; cursor:pointer; font-weight:700; right: 12px; top: 50%; transform: translateY(-50%); position: absolute; }
+
+/* buttons */
+.btn { padding:12px 14px; border-radius:10px; font-weight:700; cursor:pointer; }
+.btn.primary { background: linear-gradient(180deg,#0b4f90,#0b63c7); color:#fff; box-shadow:0 10px 30px rgba(11,99,199,0.18); }
+.btn.ghost { background:transparent; border:1px solid #d9dde1; color:#2b3b4a; }
+
+
+/* make sure form content sits above semicircle */
+.login-right > * { position: relative; z-index: 5; }
+
+/* visually center the top icon and move title a bit right to align with inputs */
+.login-top-icon { display:flex; justify-content:center; margin-bottom:8px; }
+.signin-title {
+  font-size: 22px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+/* inputs: make them full width and offset from semicircle edge */
+.signin-form {
+  width: 100%;
+  max-width: 330px;
+  margin-left: 20px; /* move form slightly right away from the semicircle */
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* keep input styles but make them slightly "floating" and balanced */
+.field {
+  position: relative;       /* IMPORTANT: for .show-btn */
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e6e8eb;
+  background: #f8fafb;
+  font-size: 14px;
+  box-sizing: border-box;
+   padding-left: 6px;        /* left padding is small because icon sits outside input */
+  padding-right: 56px;      /* enough room for "Show" button */
+}
+
+
+
+/* ====== Minimal underline form (scoped to right panel) ====== */
+/* Put this at the end of login.css */
+
+.login-right .field {
+  position: relative;            /* for the absolute "Show" button */
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+
+
+
+/* Remove the boxed input look only inside right panel and show thin bottom line */
+.login-right .input {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid rgba(60,90,120,0.14) !important;
+  border-radius: 0 !important;
+  padding: 8px 12px;
+  padding-left: 6px;        /* text sits a bit after the icon */
+  padding-right: 56px;      /* room for show/hide */
+  box-sizing: border-box;
+  color: #243040;
+  outline: none;
+}
+
+/* placeholder tone and focus */
+.login-right .input::placeholder { color: rgba(60,90,120,0.45); font-weight: 300; }
+.login-right .input:focus { border-bottom-color: rgba(30,90,170,0.95); }
+
+/* Show/Hide button positioned absolutely (keeps inside field) */
+.login-right .show-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #0b63c7;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 6px;
+  cursor: pointer;
+  z-index: 7;
+}
+
+
+/* small spacing like your sample */
+.login-right .small-row { margin-top: 6px; margin-bottom: 6px; align-items: center; font-size:13px; }
+.login-right .remember-text { margin-left:6px; font-size: 13px; color: rgba(40,60,80,0.9); }
+
+/* keep login button neat & centered under inputs */
+.login-right .btn.primary.wide {
+  width: 220px;
+  align-self: center;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+
+
+/* ==== small tweaks for icons + remember/forgot inside right panel ==== */
+
+/* push the whole form a bit right so icons can visually sit inside the semicircle area */
+.login-right .signin-form {
+  margin-left: var(--signin-offset);
+  max-width: 420px;
+  width: calc(100% - var(--signin-offset));
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* icon box: shift left into the semicircle and vertically center */
+.login-right .field .icon {
+ width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #2f4f6f;
+  margin-left: calc(-1 * var(--signin-offset) + 12px); /* pulls icon into semicircle area */
+  z-index: 6;
+  margin-right: 10px;
+}
+
+
+
+/* make SVGs use currentColor (ensures color prop works) */
+.login-right .field .icon svg {
+  stroke: currentColor;
+  width: 25px;
+  height: 25px;
+  display: block;
+  line-height: 0;
+}
+
+
+
+/* ===== remember / forgot row: keep checkbox left, forgot link right ===== */
+/* scoped only inside right panel */
+.login-right .row.between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
+  margin-left: var(--signin-offset);
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+/* make the remember control nicer and aligned */
+.login-right .remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(40,60,80,0.9);
+}
+
+/* style forgot link to sit right and be visually separate */
+.login-right .forgot {
+  color: #0b63c7;
+  text-decoration: none;
+  font-size: 13px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* if the forgot link sits too close, add a little left padding */
+.login-right .forgot { padding-left: 12px; }
+
+
+/* neat, centered login button (matches your design) */
+.login-right .btn.primary.wide,
+.login-right .btn.primary {
+  width: 220px;
+  align-self: center;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+
+
+
+
+
+/* small screens: stack panels (single column), reduce margins, avoid overflow */
+@media (max-width: 680px) {
+  .login-card {
+    grid-template-columns: 1fr;
+    max-width: 790px;
+    gap: 0;
+    padding: 15px;
+  }
+
+  /* left panel becomes the top block with tighter inner padding */
+  .login-left {
+    border-radius: 12px;
+    padding: 28px 20px;
+    min-height: 200px;
+  }
+
+  /* right panel stacks below left and uses smaller offsets */
+  .login-right {
+    margin-top: 16px;
+    border-radius: 12px;
+    padding: 20px;
+    min-height: auto;
+    --signin-offset: 15px;
+  }
+
+  .login-right::before {
+    /* make semicircle smaller and centered on stacked layout */
+    left: calc(50% - 60px);
+    top: -40px;
+    width: 120px;
+    height: 120px;
+  }
+
+  /* ensure inputs and offset inside are responsive */
+  .login-right .signin-form,
+  .login-right .row.between {
+    margin-left: var(--signin-offset);
+    max-width: calc(100% - var(--signin-offset));
+  }
+
+  .login-right .field .icon {
+    width: 25px;
+    height: 25px;
+}
+
+/* make SVGs use currentColor (ensures color prop works) */
+.login-right .field .icon svg {
+  width: 25px;
+  height: 25px;
+}
+
+
+/* Left text style (crisper and more contrast-safe) */
+.welcome-title {font-size: 28px;}
+.welcome-sub {margin: 0 0 10px;  }
+.welcome-desc {margin: 0 0 14px; font-size: 12px;}
+
+
+/* Decorative circles (larger and softer) */
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(0.4px) drop-shadow(0 8px 30px rgba(8,40,92,0.28));
+  background: rgba(255,255,255,0.06);
+  box-shadow: inset -8px -8px 40px rgba(0,0,0,0.08);
+  z-index: 3;
+}
+.circle-lg {
+  width: 140px;
+  height: 140px;
+  right: -50px;
+  bottom: -10px;
+  background: radial-gradient(
+    circle at 40% 40%,
+    rgba(120, 170, 255, 0.45),   /* bright soft blue center */
+    rgba(25, 70, 119, 0.15) 60%, /* blends with mid background */
+    rgba(8, 29, 54, 0) 100%      /* fades into dark navy */
+  );
+  opacity: 0.95;
+}
+.circle-md {
+  width: 70px;
+  height: 70px;
+  left: -10px;
+  bottom: 50px;
+  background: radial-gradient(
+      circle at 30% 30%,
+      rgba(90, 150, 255, 0.38),    /* lighter blue core */
+      rgba(30, 70, 120, 0.18) 55%, /* mid blend */
+      rgba(8, 29, 54, 0) 100%      /* transparent edge */
+    );
+}
+.circle-sm {
+  width: 40px;
+  height: 40px;
+  right: 20px;
+  top: 24px;
+  background: radial-gradient(
+      circle at 40% 40%,
+      rgba(200, 230, 255, 0.55),   /* soft light highlight */
+      rgba(25, 70, 119, 0.2) 60%,
+      rgba(8, 29, 54, 0) 100%
+    );
+}
+
+
+
+.signin-title {
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.input {font-size: 12px;}
+
+
+
+
+}

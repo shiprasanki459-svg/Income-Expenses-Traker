@@ -1,0 +1,623 @@
+/* src/styles/monthlyComparison.css
+   Reduced box size + keep scroll INSIDE the table panel (no page scrollbar)
+*/
+
+/* CSS vars for easy tuning */
+:root {
+  --mc-month-header-h: 46px;
+  --mc-sub-header-h: 34px;
+  --mc-total-header-h: calc(var(--mc-month-header-h) + var(--mc-sub-header-h));
+
+  /* reduced minima to avoid forcing wide tables */
+  --mc-cell-min-w: 70px;   /* lowered from 140 */
+  --mc-item-min-w: 160px;   /* lowered from 260 */
+  --mc-table-fixed-h: 540px;
+}
+
+/* -------------------------
+   Card shell + header (smaller)
+   -------------------------*/
+   
+.mc-card{
+  /* keep visual rules */
+  background: linear-gradient(135deg, #0d3b66 0%, #5ea3a3 70%, #e8f9ff 100%);
+  border-radius: 14px;
+  padding: 12px;
+  margin: 20px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.6);
+  border: 1px solid rgba(0,0,0,0.06);
+  box-sizing: border-box;
+  width: 97%;
+  max-width: 97%;
+
+  /* <-- IMPORTANT: layout control to prevent page scroll */
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 40px); /* reduce box size so page doesn't need to scroll */
+  overflow: hidden;               /* hide overflow so document height won't grow */
+}
+
+
+/* header area */
+.mc-header {
+   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: nowrap; /* will switch to wrap on small screens by media queries */
+
+}
+
+
+.mc-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fae9f6;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* export button style (unchanged, just fits) */
+.mc-controls .mc-btn,
+.mc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(180deg, #ffffff10 0%, rgba(255,255,255,0.03) 60%);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  padding: 7px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.04);
+  backdrop-filter: blur(4px);
+  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+  white-space: nowrap;
+  line-height: 1;
+  box-sizing: border-box;
+}
+
+/* -------------------------
+   Table container (SCROLL LIVES HERE)
+   -------------------------*/
+
+.mc-table-wrap {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px;              /* less padding so content fits */
+  border-radius: 10px;
+  background: #fbfeff;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+
+  /* make this panel the only scrolling area */
+  height: var(--mc-table-fixed-h);
+  overflow-y: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure sticky uses this container as scroll ancestor */
+.mc-table thead tr.mc-head-months th.mc-month,
+.mc-table thead tr.mc-head-sub th.mc-sub,
+.mc-table thead th.mc-sticky-first {
+  position: sticky;
+}
+
+/* -------------------------
+   Table base (allow it to shrink instead of forcing viewport overflow)
+   -------------------------*/
+
+.mc-table {
+  border-collapse: separate;
+  border-spacing: 8px 10px;
+  /* remove hard min-width to avoid creating page-wide overflow */
+  min-width: unset;
+  width: 100%;
+  max-width: 100%;          /* important: don't let table exceed its wrapper */
+  box-sizing: border-box;
+  table-layout: auto;
+}
+
+/* month top-band */
+.mc-head-months th.mc-month {
+  background: #bde0fe;
+  color: #033445;
+  font-weight: 800;
+  text-align: center;
+  border-radius: 8px;
+  padding: 8px 10px;
+  border-bottom: 3px solid rgba(0,0,0,0.04);
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: calc(var(--mc-cell-min-w) * 3 / 1.2);
+}
+
+/* sub-header row */
+.mc-head-sub th.mc-sub {
+  background: #f1fbfe;
+  color: #143a3a;
+  font-weight: 800;
+  text-align: center;
+  padding: 6px 8px;
+  border-radius: 6px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  min-width: calc(var(--mc-cell-min-w) * 1 / 1.2);
+}
+
+/* frozen Item column baseline */
+.mc-sticky-first {
+  min-width: var(--mc-item-min-w);
+  box-sizing: border-box;
+  max-width: 35%; /* prevent item column from pushing table too wide */
+}
+
+/* item cell */
+.mc-item {
+  color: #203040;
+  font-weight: 700;
+  white-space: normal;
+  line-height: 1.15;
+  word-break: break-word; /* allow wrapping inside the frozen cell */
+}
+
+/* data cells */
+.mc-cell {
+  background:  #E8E8E8 ;
+  padding: 10px 12px;
+  text-align: center;
+  border-radius: 8px;
+  min-width: calc(var(--mc-cell-min-w) * 1);
+  color: #2b2b2b;
+  font-weight: 600;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.6), inset 0 1px 0 rgba(255,255,255,0.6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* hover lift */
+.mc-row:hover .mc-cell {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+}
+
+/* frozen-column edge gradient */
+.mc-sticky-first::after {
+  content: "";
+  position: absolute;
+  right: -8px;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  pointer-events: none;
+  background: linear-gradient(to right, rgba(0,0,0,0.04), rgba(0,0,0,0));
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+  z-index: 2;
+}
+
+/* -------------------------
+   Sticky headers & frozen first column (unchanged behavior)
+   -------------------------*/
+
+.mc-table thead tr.mc-head-months th.mc-month {
+  position: sticky;
+  top: 0;
+  height: var(--mc-month-header-h);
+  z-index: 20;
+  background: #d6d6ff;
+  display: table-cell;
+  font-weight: 800;
+}
+
+.mc-table thead tr.mc-head-sub th.mc-sub {
+  position: sticky;
+  top: var(--mc-month-header-h);
+  height: var(--mc-sub-header-h);
+  z-index: 18;
+  background: #b4d2db;
+  color: #2e5252;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mc-table thead th.mc-sticky-first[rowspan="2"],
+.mc-table thead th.mc-sticky-first[rowspan] {
+  position: sticky;
+  left: 0;
+  top: 0;
+  height: var(--mc-total-header-h);
+  line-height: 1.1;
+  z-index: 30;
+  background: #0d3b66;
+  color: #f4f0f0;
+  border-top-left-radius: 12px;
+  padding: 12px 50px;
+  box-sizing: border-box;
+  vertical-align: middle;
+  text-align: left;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.mc-table tbody td.mc-sticky-first {
+  position: sticky;
+  left: 0;
+  z-index: 16;
+  background: #E2EAF4; /* soft mint */
+  color: #063444;
+  padding: 12px 14px;
+  box-shadow: 2px 0 8px rgba(10,20,40,0.04);
+  box-sizing: border-box;
+  white-space: normal;
+}
+
+/* helpers */
+.mc-cell.align-right { text-align: right; }
+.mc-table tbody td.mc-sticky-first .mc-item {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+
+/* -------------------------
+   Smaller text inside table
+   -------------------------*/
+
+/* all table content */
+.mc-table th{
+    font-size: 14px;      /* reduce font size for all table text */
+
+}
+
+.mc-table td {
+  font-size: 12px;      /* reduce font size for all table text */
+  line-height: 1.2;     /* tighter spacing */
+}
+
+
+/* item names (first column) */
+.mc-item {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* -------------------------
+   Vertical separator between month groups (perfectly centered)
+   -------------------------*/
+
+/* Target the first cell of each new month group (Qty of May, June, etc.) */
+.mc-table tr > *:nth-child(3n + 1):not(:first-child) {
+  position: relative;
+}
+
+/* Center the vertical line exactly between the month groups */
+.mc-table tr > *:nth-child(3n + 1):not(:first-child)::before {
+  content: "";
+  position: absolute;
+  top: -50px;        /* extend slightly above header */
+  bottom: -520px;     /* extend slightly below last cell */
+  left: -8px;       /* position the line in the center of the space */
+  width: 2px;        /* line thickness */
+  background: linear-gradient(
+    to bottom,
+    rgba(184, 179, 186, 0.281),
+    rgba(40, 20, 60, 0.78)
+  );
+  border-radius: 1px;
+  z-index: 2;
+}
+
+/* Adjust overall spacing between columns for a balanced layout */
+.mc-table {
+  border-collapse: separate;
+  border-spacing: 12px 6px; /* extra horizontal space for line centering */
+}
+
+
+
+
+/* --- Rearranged pleasing month colors (paste to replace old .mc-month.* rules) --- */
+
+.mc-month.april {
+  background: #c6e2f8 !important;   /* light blue (cool) */
+  color: #003049 !important;
+}
+
+.mc-month.may {
+  background: #ccf7db !important;   /* mint (cool) */
+  color: #003319 !important;
+}
+
+.mc-month.june {
+  background: #fbeec5 !important;   /* soft yellow (warm) */
+  color: #4a3a00 !important;
+}
+
+.mc-month.july {
+  background: #d8ccff !important;   /* soft lavender (cool) */
+  color: #5e5381 !important;
+}
+
+.mc-month.august {
+  background: #ffd6c2 !important;   /* pastel peach (warm) */
+  color: #693406 !important;
+}
+
+.mc-month.september {
+  background: #c6f0ff !important;   /* sky blue (cool) */
+  color: #1e5263 !important;
+}
+
+.mc-month.october {
+  background: #fff1cb !important;   /* cream amber (warm) */
+  color: #5b4014 !important;
+}
+
+.mc-month.november {
+  background: #d2ffe6 !important;   /* aqua mint (cool) */
+  color: #155d41 !important;
+}
+
+.mc-month.december {
+  background: #d9e5ff !important;   /* winter blue (cool) */
+  color: #29426f !important;
+}
+
+/* JANUARY: changed from green → soft buttercream (warm) to avoid duplicate greens */
+.mc-month.january {
+  background: #fff7e0 !important;   /* pale buttercream (warm) */
+  color: #5a3e07 !important;
+}
+
+/* FEBRUARY: retained mauve, sits well after warm January */
+.mc-month.february {
+  background: #f1d4ff !important;   /* mauve lavender (cool) */
+  color: #4c1c5e !important;
+}
+
+/* MARCH: cool light-sky to finish the cycle */
+.mc-month.march {
+  background: #d9f3ff !important;   /* cold sky (cool) */
+  color: #074260 !important;
+}
+
+
+
+/* ========== Export button (prettier + responsive) ========== */
+
+/* prettier export button */
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(180deg, #ffffff10 0%, rgba(255,255,255,0.03) 60%);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(4px);
+  transition: transform .14s ease, box-shadow .14s ease, opacity .12s ease;
+  white-space: nowrap;
+  line-height: 1;
+  box-sizing: border-box;
+}
+
+/* icon inside button */
+.export-btn .export-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 14px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.06);
+}
+
+/* hover/focus effects */
+.export-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.28);
+  opacity: 1;
+}
+
+.export-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.22);
+}
+
+/* dark variant for product panel if you want a different tone */
+.product-panel .export-btn {
+  color: #fff;
+  border-color: rgba(255,255,255,0.18);
+}
+
+.export-btn .export-icon svg {
+  stroke: #ffffffcc;
+  transition: stroke 0.2s ease, transform 0.2s ease;
+}
+
+.export-btn:hover .export-icon svg {
+  stroke: #ffffff;
+  transform: translateY(-2px);
+}
+
+
+
+
+/* -------------------------
+   Mobile tweaks for small screens (<= 680px)
+   Paste this at the end of monthlyComparison.css
+   ------------------------- */
+@media (max-width: 680px) {
+  /* tighten some variables for mobile */
+  :root {
+    --mc-month-header-h: 30px;
+    --mc-sub-header-h: 20px;
+    --mc-total-header-h: calc(var(--mc-month-header-h) + var(--mc-sub-header-h));
+    --mc-cell-min-w: 5px;
+    --mc-item-min-w: 100px;
+    --mc-table-fixed-h: 550px;
+  }
+
+  /* card: reduce padding/margins and allow it to use more screen height */
+  .mc-card {
+    border-radius: 10px;
+    max-height: calc(100vh - 16px);
+    max-width: 100vw;
+    box-sizing: border-box;
+    padding-left: 8px;
+    padding-right: 8px;
+    margin-left: 6px;
+    margin-right: 4px;
+  }
+
+  /* header: stack on narrow screens, smaller title + compact controls */
+  .mc-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .mc-header h3 {
+    font-size: 16px;
+    line-height: 1.15;
+    white-space: normal;
+    word-break: break-word;
+    margin-top: 10px;
+    margin-bottom: 5px;
+  }
+  .mc-controls {
+    margin-left: auto; /* keep export to the right if space allows */
+    padding: 5px;
+  }
+  .mc-controls .mc-btn,
+  .mc-btn,
+  .export-btn {
+    padding: 8px 10px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+  .export-btn .export-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* table wrapper: slightly smaller padding so content shows more */
+  .mc-table-wrap {
+    padding: 6px;
+    height: var(--mc-table-fixed-h);
+  }
+
+  /* reduce header heights and fonts for the table */
+  .mc-table thead tr.mc-head-months th.mc-month {
+    height: var(--mc-month-header-h);
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+  .mc-table thead tr.mc-head-sub th.mc-sub {
+    height: var(--mc-sub-header-h);
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+
+  /* make the frozen Item header and cells smaller */
+  .mc-table thead th.mc-sticky-first[rowspan="2"],
+  .mc-table thead th.mc-sticky-first[rowspan] {
+    padding: 10px 14px;
+    font-size: 16px;
+    height: var(--mc-total-header-h);
+  }
+  .mc-table tbody td.mc-sticky-first {
+    padding: 8px 10px;
+    font-size: 12px;
+    min-width: var(--mc-item-min-w);
+  }
+
+  /* data cells: smaller padding, slightly smaller font, keep rounded corners */
+  .mc-cell {
+    padding: 6px 8px;
+    min-width: calc(var(--mc-cell-min-w) * 1);
+    font-size: 12px;
+    border-radius: 7px;
+  }
+
+  /* overall table typography shrink */
+  .mc-table th,
+  .mc-table td {
+    font-size: 11px;
+  }
+
+  /* reduce spacing between columns on mobile */
+  .mc-table {
+    border-spacing: 8px 6px;
+    table-layout: auto;
+  }
+
+  /* make sticky-first gradient narrower so it doesn't block near-edge view */
+  .mc-sticky-first::after {
+    right: -6px;
+    width: 6px;
+  }
+
+  /* ensure month classes still look OK with smaller padding */
+  .mc-head-months th.mc-month,
+  .mc-month.april,
+  .mc-month.may,
+  .mc-month.june,
+  .mc-month.july,
+  .mc-month.august,
+  .mc-month.september,
+  .mc-month.october,
+  .mc-month.november,
+  .mc-month.december,
+  .mc-month.january,
+  .mc-month.february,
+  .mc-month.march {
+    border-radius: 6px;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  /* improve touch targets: increase vertical spacing on rows slightly */
+  .mc-table tbody tr {
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+
+  /* keep horizontal scrolling smooth and show overflow hint */
+  .mc-table-wrap {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  /* optional: collapse the vertical separator height on mobile so it doesn't overshoot */
+  .mc-table tr > *:nth-child(3n + 1):not(:first-child)::before {
+    top: -35px;
+    bottom: -520px;
+    left: -6px;
+  }
+}
+
+.mc-month-year {
+  font-size: 1 em;
+  margin-left: 4px;
+  opacity: 0.9;
+}
