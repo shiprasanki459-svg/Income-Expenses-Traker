@@ -5,12 +5,25 @@ import "../styles/rowTwo.css";
 import "../styles/bottomPanel.css";
 import "../styles/bankPage.css";
 
-
-const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-// NOTE: new backend controller will be mounted under /api/bank
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+const API = `${API_BASE}/api`;
 const BANK_API = `${API}/bank`;
 
+// helper
+async function fetchJson(url, opts) {
+  const res = await fetch(url, opts);
+  const text = await res.text();
+  if (!res.ok) {
+    try { const json = JSON.parse(text); throw new Error(json.error || JSON.stringify(json)); }
+    catch { throw new Error(text || `${res.status} ${res.statusText}`); }
+  }
+  try { return JSON.parse(text); } catch { return text; }
+}
+
 /* ----------------- Small helpers ----------------- */
+
+
+
 
 // Attach global time filter query string
 const withQS = (base, extra = {}, timeQS = {}) => {
@@ -348,25 +361,29 @@ export default function BankStatement({ selectedView, timeQS = {} }) {
     let alive = true;
     setLoading(true);
 
-    fetch(withQS(`${BANK_API}/product-summary`, {}, timeQS))
-      .then((r) => r.json())
-      .then((j) => {
-        if (!alive) return;
-        const rows = j.rows || [];
-        setDualProductRows(rows);
-
-        const currentSel = selectedPLRef.current;
-        if (currentSel) {
-          const allPls = rows.flatMap((p) =>
-            [p.left && p.left.product, p.right && p.right.product].filter(Boolean)
-          );
-          if (!allPls.includes(currentSel)) {
-            setSelectedPL(null);
-          }
+    fetchJson(withQS(`${BANK_API}/product-summary`, {}, timeQS))
+    .then((j) => {
+      if (!alive) return;
+      const rows = j.rows || [];
+      setDualProductRows(rows);
+      setErr(""); // clear previous errors
+      const currentSel = selectedPLRef.current;
+      if (currentSel) {
+        const allPls = rows.flatMap((p) =>
+          [p.left && p.left.product, p.right && p.right.product].filter(Boolean)
+        );
+        if (!allPls.includes(currentSel)) {
+          setSelectedPL(null);
         }
-      })
-      .catch((e) => setErr(String(e)))
-      .finally(() => alive && setLoading(false));
+      }
+    })
+    .catch((e) => {
+      if (!alive) return;
+      console.error(e);
+      setErr(String(e));
+    })
+    .finally(() => alive && setLoading(false));
+
 
     return () => {
       alive = false;
@@ -382,19 +399,16 @@ export default function BankStatement({ selectedView, timeQS = {} }) {
     let alive = true;
     setLoading(true);
 
-    fetch(
-      withQS(
-        `${BANK_API}/types`,
-        { plCode: selectedPL },
-        timeQS
-      )
-    )
-      .then((r) => r.json())
+    fetchJson(withQS(`${BANK_API}/types`, { plCode: selectedPL }, timeQS))
       .then((j) => {
-        if (alive) setTableRows(j.rows || []);
+        if (alive) {
+          setTableRows(j.rows || []);
+          setErr("");
+        }
       })
-      .catch((e) => setErr(String(e)))
+      .catch((e) => { if (alive) setErr(String(e)); })
       .finally(() => alive && setLoading(false));
+
 
     return () => {
       alive = false;
@@ -410,19 +424,15 @@ export default function BankStatement({ selectedView, timeQS = {} }) {
     let alive = true;
     setLoading(true);
 
-    fetch(
-      withQS(
-        `${BANK_API}/parties`,
-        { plCode: selectedPL, groupCode: selectedGroup },
-        timeQS
-      )
-    )
-      .then((r) => r.json())
-      .then((j) => {
-        if (alive) setPartyRows(j.rows || []);
-      })
-      .catch((e) => setErr(String(e)))
-      .finally(() => alive && setLoading(false));
+   fetchJson(withQS(`${BANK_API}/parties`, { plCode: selectedPL, groupCode: selectedGroup }, timeQS))
+    .then((j) => {
+      if (alive) {
+        setPartyRows(j.rows || []);
+        setErr("");
+      }
+    })
+    .catch((e) => { if (alive) setErr(String(e)); })
+    .finally(() => alive && setLoading(false));
 
     return () => {
       alive = false;
@@ -439,24 +449,18 @@ export default function BankStatement({ selectedView, timeQS = {} }) {
     let alive = true;
     setLoading(true);
 
-    fetch(
-      withQS(
-        `${BANK_API}/invoices`,
-        {
-          plCode: selectedPL,
-          groupCode: selectedGroup,
-          productName: selectedProductName,
-        },
-        timeQS
-      )
-    )
-      .then((r) => r.json())
+    fetchJson(withQS(`${BANK_API}/invoices`, {
+      plCode: selectedPL,
+      groupCode: selectedGroup,
+      productName: selectedProductName,
+    }, timeQS))
       .then((j) => {
         if (!alive) return;
         setInvoiceCols(j.columns || []);
         setInvoiceRows(j.rows || []);
+        setErr("");
       })
-      .catch((e) => setErr(String(e)))
+      .catch((e) => { if (alive) setErr(String(e)); })
       .finally(() => alive && setLoading(false));
 
     return () => {

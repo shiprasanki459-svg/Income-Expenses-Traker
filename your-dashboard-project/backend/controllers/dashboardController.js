@@ -58,7 +58,7 @@ function withDefaultMonthYear(q = {}) {
   };
 }
 
-// --- Date helpers: parse "date" or "time stamp" from the sheet ---
+// --- Date helpers (keep your existing toDate) ---
 const toDate = (raw) => {
   if (!raw) return null;
   const s = String(raw).trim();
@@ -70,7 +70,9 @@ const toDate = (raw) => {
   // Try dd/mm/yyyy or dd-mm-yyyy
   const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
   if (m) {
-    const dd = Number(m[1]), mm = Number(m[2]) - 1, yyyy = Number(m[3] < 100 ? 2000 + Number(m[3]) : m[3]);
+    const dd = Number(m[1]), mm = Number(m[2]) - 1;
+    // handle 2-digit year -> 2000+
+    const yyyy = Number(m[3]) < 100 ? 2000 + Number(m[3]) : Number(m[3]);
     const d = new Date(yyyy, mm, dd);
     if (!isNaN(d)) return d;
   }
@@ -78,8 +80,40 @@ const toDate = (raw) => {
   return null;
 };
 
-// Use "date" first, fallback to "time stamp"
-const getRowDate = (r) => toDate(r["date"]) || toDate(r["time stamp"]);
+// Use "date" first, fallback to "time stamp" — but also support "new_date" object and many variants
+const getRowDate = (r) => {
+  if (!r || typeof r !== "object") return null;
+
+  // canonical keys we might have after normalization:
+  // prefer 'date', then 'new date', then 'time stamp', then 'timestamp'
+  const candidates = [
+    r["date"],
+    r["new date"],
+    r["time stamp"],
+    r["timestamp"],
+    r["time_stamp"],
+    r["time"] // defensive
+  ];
+
+  for (const raw of candidates) {
+    if (raw === undefined || raw === null) continue;
+    // BigQuery sometimes returns { value: "YYYY-MM-DD" }
+    const maybe = (typeof raw === "object" && raw.value !== undefined) ? raw.value : raw;
+    const d = toDate(maybe);
+    if (d) return d;
+  }
+
+  // last-ditch: try parsing the timestamp field if present as stringified object
+  // (some rows may have combined timestamp like "13-11-2025 00:00")
+  const tsRaw = r["timestamp"] || r["time stamp"] || r["time"];
+  if (tsRaw) {
+    const rawVal = (typeof tsRaw === "object" && tsRaw.value !== undefined) ? tsRaw.value : tsRaw;
+    const d = toDate(rawVal);
+    if (d) return d;
+  }
+
+  return null;
+};
 
 // Apply filters from query: start (YYYY-MM-DD), end (YYYY-MM-DD), month (1-12), year (YYYY')
 const filterRowsByTime = (rows, q) => {
@@ -106,15 +140,61 @@ const filterRowsByTime = (rows, q) => {
 };
 
 
-// normalize row keys to lowercase trimmed keys (run once after fetching)
+// normalize row keys to lowercase canonical keys (single-space sep) and normalize some values
 const normalizeRows = (rows) => {
   return (rows || []).map(r => {
     const nr = {};
+
     Object.entries(r).forEach(([k, v]) => {
-      // convert header key to canonical form: lowercase + single spaces trimmed
-      const nk = (k || "").toString().trim().toLowerCase();
-      nr[nk] = v;
+      // 1) canonicalize header key: lowercase, replace non-alnum with single space, trim
+      let nk = (k || "").toString().trim().toLowerCase();
+      nk = nk.replace(/[\u00A0\s\-_]+/g, " "); // replace underscores, dashes, multiple spaces, NBSP -> single space
+      nk = nk.replace(/[^\w\s]/g, " "); // remove other punctuation
+      nk = nk.replace(/\s+/g, " ").trim();
+
+      // 2) unwrap BigQuery-style objects like { value: "2025-11-13" }
+      let val = v;
+      if (val && typeof val === "object" && Object.prototype.hasOwnProperty.call(val, "value")) {
+        val = val.value;
+      }
+
+      // 3) normalize numeric-like strings: strip commas from numbers (e.g. "7,484" -> "7484")
+      if (val !== null && val !== undefined && typeof val === "string") {
+        // if string looks like a number with commas or digits
+        if (/^[\d,\.\- ]+$/.test(val.trim())) {
+          // remove commas and extra spaces
+          val = val.replace(/,/g, "").trim();
+        }
+      }
+
+      // 4) store normalized key/value
+      nr[nk] = val;
     });
+
+    // 5) alias common names to canonical keys used by controller
+    // map "new date" -> "date", "timestamp" -> "time stamp", etc.
+    if (nr["new date"] !== undefined && (nr["date"] === undefined || !nr["date"])) {
+      nr["date"] = nr["new date"];
+    }
+    
+    if (nr["timestamp"] !== undefined && (nr["time stamp"] === undefined || !nr["time stamp"])) {
+      nr["time stamp"] = nr["timestamp"];
+    }
+    if (nr["stock_qty"] !== undefined && nr["stock qty"] === undefined) {
+      nr["stock qty"] = nr["stock_qty"];
+    }
+    if (nr["stockqty"] !== undefined && nr["stock qty"] === undefined) {
+      nr["stock qty"] = nr["stockqty"];
+    }
+    // also unify product name variants
+    if (nr["product name"] === undefined && nr["productname"] !== undefined) {
+      nr["product name"] = nr["productname"];
+    }
+    // ensure 'amount' exists and has commas stripped (we did above), keep as string/number friendly
+    if (nr["amount"] !== undefined && typeof nr["amount"] === "string") {
+      nr["amount"] = nr["amount"].trim();
+    }
+
     return nr;
   });
 };
@@ -155,10 +235,11 @@ const blankAgg = (name) => ({
 exports.getProductSummary = async (req, res) => {
   try {
     console.log("[REQ] /product-summary query:", req.query);
-    const raw = await fetchSheetRows();
-    debugLogSample("raw from sheetsService (first rows)", raw, 1);
+    // before: const raw = await fetchSheetRows();
+    const raw = await fetchSheetRows(); // fetch up to 2000 rows — adjust as needed
     const rows = normalizeRows(raw);
     debugLogSample("normalized rows (first)", rows, 1);
+
 
     const scoped = filterRowsByTime(rows, withDefaultMonthYear(req.query));
     debugLogSample("scoped after time filter", scoped, 1);

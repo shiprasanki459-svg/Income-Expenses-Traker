@@ -69,8 +69,7 @@ export default function MonthlyComparison({ rows = [], months, data = {}, title 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-   useEffect(() => {
-    // if parent passed data prop, use it and skip fetch
+  useEffect(() => {
     if (data && Object.keys(data).length) {
       setDataState(data);
       if (Array.isArray(rows) && rows.length) setRowsState(rows);
@@ -78,27 +77,31 @@ export default function MonthlyComparison({ rows = [], months, data = {}, title 
       return;
     }
 
-    // otherwise fetch from backend using your sheetApi helper
+    const controller = new AbortController();
     let cancelled = false;
     setLoading(true);
+    setError(null);
 
-    // pass timeQS as query params (fetchMonthlyComparison accepts a params object)
-    fetchMonthlyComparison(timeQS || {})
-      .then((json) => {
+    (async () => {
+      try {
+        const json = await fetchMonthlyComparison(timeQS || {}, { signal: controller.signal });
         if (cancelled) return;
         if (json.rows && Array.isArray(json.rows) && json.rows.length) setRowsState(json.rows);
         if (json.months && Array.isArray(json.months) && json.months.length === 12) setMonthsState(json.months);
         if (json.data && typeof json.data === "object") setDataState(json.data);
-        setLoading(false);
-      })
-      .catch((e) => {
-        if (cancelled) return;
-        console.error("fetchMonthlyComparison failed:", e);
-        setError(e.message || "Failed to fetch monthly comparison");
-        setLoading(false);
-      });
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        console.error("fetchMonthlyComparison failed:", err);
+        setError(err.message || "Failed to fetch monthly comparison");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [rows, months, data, JSON.stringify(timeQS)]);
 
     // ALIASES used by the rest of the file (keeps UI code unchanged)

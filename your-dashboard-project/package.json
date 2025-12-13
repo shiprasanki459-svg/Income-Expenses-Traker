@@ -1,5 +1,8 @@
 {
   "dependencies": {
+    "@google-cloud/bigquery": "^8.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "jszip": "^3.10.1"
   }
 }

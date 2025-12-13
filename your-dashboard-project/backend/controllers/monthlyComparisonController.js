@@ -71,10 +71,61 @@ function normalizeRows(rows) {
     return nr;
   });
 }
+
+
+
+function withDefaultMonthYear(q = {}) {
+  const hasAny =
+    (q.start && q.start.trim && q.start.trim()) ||
+    (q.end && q.end.trim && q.end.trim()) ||
+    q.month !== undefined ||
+    q.year !== undefined;
+
+  if (hasAny) return q;
+
+  const today = new Date();
+  return {
+    ...q,
+    month: today.getMonth() + 1, // 1..12
+    year: today.getFullYear(),
+  };
+}
+
+function filterRowsFiscalYear(rows, fiscalYearStart) {
+  return rows.filter(r => {
+    const d = getRowDate(r);
+    if (!d) return false;
+
+    const fyStart = Number(fiscalYearStart);
+    const fyEnd = fyStart + 1;
+
+    const m = d.getMonth();
+
+    // Apr–Dec → year must match fyStart
+    if (m >= 3 && m <= 11) {
+      return d.getFullYear() === fyStart;
+    }
+
+    // Jan–Mar → year must match fyStart + 1
+    if (m >= 0 && m <= 2) {
+      return d.getFullYear() === fyEnd;
+    }
+
+    return false;
+  });
+}
+
+
+
+
 exports.getMonthlyComparison = async (req, res) => {
   try {
     const raw = await fetchSheetRows();
-    const rows = normalizeRows(raw);
+    const rawRows = normalizeRows(raw);
+    const query = withDefaultMonthYear(req.query);
+    
+    const fiscalYearStart = Number(query.year); // example: 2025 for FY 2025–26
+    const rows = filterRowsFiscalYear(rawRows, fiscalYearStart);
 
     // 1) Build DYNAMIC label list from sheet (PL Code / Product Name)
     // ---------------------------

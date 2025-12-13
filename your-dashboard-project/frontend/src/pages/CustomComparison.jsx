@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import "../styles/customComparison.css";
 
-const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export default function CustomComparison() {
   // date ranges for left and right
@@ -24,7 +24,7 @@ export default function CustomComparison() {
     let alive = true;
     (async function fetchItems() {
       try {
-        const r = await fetch(`${API}/month/items`);
+        const r = await fetch(`${API}/api/month/items`);
         if (!r.ok) throw new Error(await r.text());
         const j = await r.json();
 
@@ -78,7 +78,7 @@ export default function CustomComparison() {
         items: items, // optional but recommended
       };
 
-      const resp = await fetch(`${API}/month/custom-compare`, {
+      const resp = await fetch(`${API}/api/month/custom-compare`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
