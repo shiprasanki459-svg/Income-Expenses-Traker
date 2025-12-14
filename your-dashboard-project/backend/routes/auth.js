@@ -35,34 +35,30 @@ router.post("/login", (req, res) => {
   return res.json({ token, user: payload });
 });
 
-// Middleware to protect routes
+// middleware
 function requireAuth(req, res, next) {
   const auth = req.headers.authorization;
-
   if (!auth || !auth.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Missing token" });
   }
 
-  const token = auth.split(" ")[1];
-
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
-    return next();
-  } catch (err) {
+    const token = auth.split(" ")[1];
+    req.user = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch {
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 }
 
 // GET /api/auth/users
 router.get("/users", requireAuth, (req, res) => {
-  const safe = users.map((u) => ({
+  const safe = users.map(u => ({
     id: u.id,
     email: u.email,
     name: u.name,
     role: u.role,
   }));
-
   res.json({ users: safe });
 });
 

@@ -5,8 +5,8 @@ import "../styles/rowTwo.css";
 import "../styles/bottomPanel.css";
 import "../styles/bankPage.css";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "/api";
-const BANK_API = `${API_BASE}/bank`;
+const API_BASE = import.meta.env.VITE_API_BASE || "";
+const BANK_API = `${API_BASE}/api/bank`;
 
 
 // helper

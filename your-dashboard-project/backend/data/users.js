@@ -1,23 +1,20 @@
 // backend/data/users.js
 // Demo user list (in-memory). Replace with DB later.
 // WARNING: passwords are plaintext here for demo convenience.
-// In production: store hashed passwords (bcrypt).
 
-const users = [
+export const users = [
   {
     id: 1,
     email: "admin@example.com",
     password: "password123",
     name: "Admin User",
-    role: "admin"
+    role: "admin",
   },
   {
     id: 2,
     email: "user@example.com",
     password: "userpass",
     name: "Normal User",
-    role: "user"
-  }
+    role: "user",
+  },
 ];
-
-module.exports = { users };
