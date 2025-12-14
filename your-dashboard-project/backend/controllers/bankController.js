@@ -1,5 +1,5 @@
 // backend/controllers/bankController.js
-const { fetchBankSheetRows } = require("../services/bankSheetsService");
+import { fetchBankSheetRows } from "../services/bankSheetsService.js";
 
 /* ------------- Helpers ------------- */
 const toNum = (v) => {
@@ -77,7 +77,7 @@ const filterRowsByTime = (rows, q) => {
    Group by: GROUPING CODE
    Return: dual table (left/right pairs)
    ---------------------------------------------- */
-exports.getProductSummary = async (req, res) => {
+export const getProductSummary = async (req, res) => {
   try {
     const raw = await fetchBankSheetRows();
     const rows = normalizeRows(raw);
@@ -119,7 +119,7 @@ exports.getProductSummary = async (req, res) => {
    Group by: PRODUCT NAME (col D)
    Filter by: GROUPING CODE (col C)
    ---------------------------------------------- */
-exports.getTypes = async (req, res) => {
+export const getTypes = async (req, res) => {
   try {
     const { plCode, groupCode } = req.query;
 
@@ -162,7 +162,7 @@ exports.getTypes = async (req, res) => {
    Group by: NAME (party, col E)
    Filter by: GROUPING CODE (C) + PRODUCT NAME (D)
    ---------------------------------------------- */
-exports.getParties = async (req, res) => {
+export const getParties = async (req, res) => {
   try {
     const { plCode, groupCode, type } = req.query;
 
@@ -208,7 +208,7 @@ exports.getParties = async (req, res) => {
    4) INVOICES (full raw rows)
    Filter by: GROUPING CODE (C) + PRODUCT NAME (D) + NAME (E)
    ---------------------------------------------- */
-exports.getInvoices = async (req, res) => {
+export const getInvoices = async (req, res) => {
   try {
     const { plCode, groupCode, productName, type, party } = req.query;
 

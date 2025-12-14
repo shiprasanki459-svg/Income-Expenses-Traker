@@ -1,5 +1,5 @@
 // backend/controllers/monthlyComparisonController.js
-const { fetchSheetRows } = require("../services/sheetsService");
+import { fetchSheetRows } from "../services/sheetsService.js";
 
 /* small helpers copied from your dashboardController style */
 const toNum = (v) => {
@@ -118,7 +118,7 @@ function filterRowsFiscalYear(rows, fiscalYearStart) {
 
 
 
-exports.getMonthlyComparison = async (req, res) => {
+export const getMonthlyComparison = async (req, res) => {
   try {
     const raw = await fetchSheetRows();
     const rawRows = normalizeRows(raw);

@@ -1,6 +1,7 @@
 // backend/services/sheetsService.js
-const axios = require("axios");
-const Papa = require("papaparse");
+import axios from "axios";
+import Papa from "papaparse";
+
 
 /**
  * Map different header spellings to canonical lowercase keys
@@ -78,4 +79,4 @@ async function fetchSheetRows() {
   return rows;
 }
 
-module.exports = { fetchSheetRows, HEADER_ALIASES };
+export { fetchSheetRows, HEADER_ALIASES };

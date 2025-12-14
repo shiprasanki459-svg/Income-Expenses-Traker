@@ -1,9 +1,8 @@
-// backend/routes/monthlyComparison.js
-const express = require("express");
-const router = express.Router();
-const ctrl = require("../controllers/monthlyComparisonController");
+import express from "express";
+import * as ctrl from "../controllers/monthlyComparisonController.js";
 
-// GET /api/monthly-comparison
+const router = express.Router();
+
 router.get("/", ctrl.getMonthlyComparison);
 
-module.exports = router;
+export default router;

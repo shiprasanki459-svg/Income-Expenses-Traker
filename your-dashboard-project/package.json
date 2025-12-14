@@ -1,8 +1,16 @@
 {
+  "name": "root",
+  "version": "1.0.0",
+  "type": "module",
   "dependencies": {
-    "@google-cloud/bigquery": "^8.1.1",
+    "express": "^4.18.2",
+    "serverless-http": "^3.2.0",
     "cors": "^2.8.5",
+    "morgan": "^1.10.0",
+    "axios": "^1.6.8",
+    "papaparse": "^5.4.1",
     "dotenv": "^17.2.3",
+    "jsonwebtoken": "^9.0.0",
     "jszip": "^3.10.1"
   }
 }

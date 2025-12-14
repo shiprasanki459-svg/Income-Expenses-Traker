@@ -1,9 +1,10 @@
 // backend/services/bankSheetsService.js
-const axios = require("axios");
-const Papa = require("papaparse");
+import axios from "axios";
+import Papa from "papaparse";
 
 // reuse the same header aliases from sheetsService
-const { HEADER_ALIASES } = require("./sheetsService");
+import { HEADER_ALIASES } from "./sheetsService.js";
+
 
 // same canonicalization as dashboard
 function canonicalizeRow(row) {
@@ -38,4 +39,4 @@ async function fetchBankSheetRows() {
   return rows;
 }
 
-module.exports = { fetchBankSheetRows };
+export { fetchBankSheetRows };

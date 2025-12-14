@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./../styles/login.css";
 
+const API = import.meta.env.VITE_API_BASE || "/api";
+
+
 export default function Login({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
@@ -19,44 +22,37 @@ export default function Login({ onLogin }) {
   }
 
   try {
-    // Use full backend URL so request goes to backend (no proxy required)
-    const resp = await fetch("http://localhost:5000/api/auth/login", {
+    const resp = await fetch(`${API}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
 
-    // If response is not OK, try to parse error JSON or fallback to text
     if (!resp.ok) {
       let errText;
       try {
         const errJson = await resp.json();
         errText = errJson.error || JSON.stringify(errJson);
-      } catch (parseErr) {
+      } catch {
         errText = await resp.text();
       }
       alert(errText || `Login failed (status ${resp.status})`);
       return;
     }
 
-    // OK: parse JSON body
     const data = await resp.json();
 
-    // Save token and user
-    try {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-    } catch (err) {
-      console.warn("Could not save auth to localStorage", err);
-    }
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
 
     if (typeof onLogin === "function") onLogin(data.user);
     navigate("/dashboard", { replace: true });
   } catch (err) {
     console.error("Network/server error:", err);
-    alert("Server error. Make sure backend is running at http://localhost:5000 and CORS allows your origin.");
+    alert("Server error. Please try again later.");
   }
 };
+
 
 
 

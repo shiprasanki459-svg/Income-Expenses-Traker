@@ -1,7 +1,7 @@
-// backend/routes/dashboard.js
-const express = require("express");
+import express from "express";
+import * as ctrl from "../controllers/dashboardController.js";
+
 const router = express.Router();
-const ctrl = require("../controllers/dashboardController");
 
 router.get("/product-summary", ctrl.getProductSummary);
 router.get("/types", ctrl.getTypesByProduct);
@@ -9,6 +9,6 @@ router.get("/parties", ctrl.getPartiesByType);
 router.get("/invoices", ctrl.getInvoices);
 
 router.get("/opening-balance", ctrl.getOpeningBalance);
-router.get("/nagdi-tutra", ctrl.getNagdiTutra);   
+router.get("/nagdi-tutra", ctrl.getNagdiTutra);
 
-module.exports = router;
+export default router;
