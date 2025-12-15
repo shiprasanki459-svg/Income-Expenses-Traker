@@ -40,9 +40,10 @@ const frontendPath = path.join(__dirname, "../frontend/dist");
 app.use(express.static(frontendPath));
 
 // React SPA fallback
-app.get("*", (req, res) => {
+app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
+
 
 
 const port = process.env.PORT || 5000;
