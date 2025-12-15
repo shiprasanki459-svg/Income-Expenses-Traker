@@ -3,7 +3,7 @@
   "routes": [
     {
       "src": "^/api/(.*)$",
-      "dest": "/api/index.js"
+      "dest": "/your-dashboard-project/api/index.js"
     },
     {
       "src": "^(.*)$",
