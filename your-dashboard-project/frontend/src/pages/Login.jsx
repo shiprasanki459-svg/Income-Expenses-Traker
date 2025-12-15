@@ -54,7 +54,7 @@ export default function Login({ onLogin }) {
     navigate("/dashboard", { replace: true });
   } catch (err) {
     console.error("Network/server error:", err);
-    alert("Server error. Make sure backend is running at http://localhost:5000 and CORS allows your origin.");
+    alert("Server error. Please try again later or contact support.");
   }
 };
 

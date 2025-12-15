@@ -11,7 +11,6 @@ import * as XLSX from "xlsx-js-style";
 
 // 👇 Add this line to read the backend base URL from frontend .env
 // read base URL (Vite env) or fallback to backend API base
-const API = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 
 // frontend-safe number parser (same logic as backend toNum)
 const safeNum = (v) => {
@@ -674,7 +673,7 @@ useEffect(() => {
   let alive = true;
   setLoading(true);
 
-  fetch(withQS(`${API}/api/product-summary`))
+  fetch(withQS(`/api/product-summary`))
     .then(r => r.json())
     .then(j => {
       if (!alive) return;
@@ -702,7 +701,7 @@ useEffect(() => {
 useEffect(() => {
   let alive = true;
 
-  fetch(withQS(`${API}/api/opening-balance`))
+  fetch(withQS(`/api/opening-balance`))
     .then(r => r.json())
     .then(j => {
       if (!alive) return;
@@ -729,7 +728,7 @@ useEffect(() => {
 useEffect(() => {
   let alive = true;
 
-  fetch(withQS(`${API}/api/nagdi-tutra`))
+  fetch(withQS(`/api/nagdi-tutra`))
     .then(r => r.json())
     .then(j => {
       if (!alive) return;
@@ -749,7 +748,7 @@ useEffect(() => {
   let alive = true;
   setLoading(true);
     // request grouping codes for the selected PL
-    fetch(withQS(`${API}/api/types`, { plCode: selectedPL }))
+    fetch(withQS(`/api/types`, { plCode: selectedPL }))
     .then(r => r.json())
     .then(j => { if (alive) setTableRows(j.rows || []); })
     .catch(e => setErr(String(e)))
@@ -764,7 +763,7 @@ useEffect(() => {
   let alive = true;
   setLoading(true);
 
-  fetch(withQS(`${API}/api/parties`, { plCode: selectedPL, groupCode: selectedGroup }))
+  fetch(withQS(`/api/parties`, { plCode: selectedPL, groupCode: selectedGroup }))
     .then(r => r.json())
     .then(j => { if (alive) setPartyRows(j.rows || []); })
     .catch(e => setErr(String(e)))
@@ -780,7 +779,12 @@ useEffect(() => {
   if (!selectedPL || !selectedGroup || !selectedProductName) { setInvoiceRows([]); return; }
   let alive = true;
   setLoading(true);
-  fetch(withQS(`${API}/api/invoices`, { plCode: selectedPL, groupCode: selectedGroup, productName: selectedProductName }))
+  fetch(withQS(`/api/invoices`, { 
+    plCode: selectedPL,
+    groupCode: selectedGroup,
+    productName: selectedProductName
+  }))
+
 
     .then(r => r.json())
     .then(j => {

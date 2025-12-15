@@ -1,9 +1,8 @@
 // src/api/sheetApi.js
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 
 export async function fetchMonthlyComparison(params = {}, options = {}) {
   const qs = new URLSearchParams(params).toString();
-  const url = `${API_BASE}/api/monthly-comparison${qs ? "?" + qs : ""}`;
+  const url = `/api/monthly-comparison${qs ? "?" + qs : ""}`;
 
   const res = await fetch(url, options);
   if (!res.ok) {
@@ -12,4 +11,3 @@ export async function fetchMonthlyComparison(params = {}, options = {}) {
   }
   return res.json();
 }
-
