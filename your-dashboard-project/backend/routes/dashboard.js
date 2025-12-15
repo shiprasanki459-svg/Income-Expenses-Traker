@@ -1,3 +1,5 @@
+// backend/routes/dashboard.js
+
 import express from "express";
 import * as ctrl from "../controllers/dashboardController.js";
 

@@ -1,3 +1,5 @@
+// backend/routes/bank.js
+
 import express from "express";
 import * as ctrl from "../controllers/bankController.js";
 

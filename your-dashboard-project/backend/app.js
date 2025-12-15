@@ -1,3 +1,5 @@
+//backend/app.js
+
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -26,13 +28,14 @@ app.use(
 );
 
 // health
-app.get("/api/health", (_, res) => res.json({ ok: true }));
+app.get("/health", (_, res) => res.json({ ok: true }));
 
 // routes
-app.use("/api", dashboardRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/monthly-comparison", monthlyComparisonRoutes);
-app.use("/api/bank", bankRoutes);
-app.use("/api/month", customMonthRoutes);
+app.use("/", dashboardRoutes);
+app.use("/auth", authRoutes);
+app.use("/monthly-comparison", monthlyComparisonRoutes);
+app.use("/bank", bankRoutes);
+app.use("/month", customMonthRoutes);
+
 
 export default app;
