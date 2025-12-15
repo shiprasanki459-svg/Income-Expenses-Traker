@@ -2,6 +2,8 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
+const path = require("path");
+
 require("dotenv").config();
 
 const app = express();
@@ -30,6 +32,17 @@ app.use("/api/bank", require("./routes/bank"));
 // existing requires...
 app.use("/api/month", require("./routes/customMonthRoutes"));
 
+// ==========================
+// Serve Frontend (React)
+// ==========================
+const frontendPath = path.join(__dirname, "../frontend/dist");
+
+app.use(express.static(frontendPath));
+
+// React SPA fallback
+app.get("*", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
 
 
 const port = process.env.PORT || 5000;
