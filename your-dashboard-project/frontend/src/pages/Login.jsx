@@ -20,7 +20,7 @@ export default function Login({ onLogin }) {
 
   try {
     // Use full backend URL so request goes to backend (no proxy required)
-    const resp = await fetch("http://localhost:5000/api/auth/login", {
+    const resp = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
