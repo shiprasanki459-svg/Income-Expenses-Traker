@@ -3,7 +3,7 @@ const API_BASE = import.meta.env.VITE_API_BASE || "/api";
 
 export async function fetchMonthlyComparison(params = {}, options = {}) {
   const qs = new URLSearchParams(params).toString();
-  const url = `${API_BASE}/api/monthly-comparison${qs ? "?" + qs : ""}`;
+  const url = `${API_BASE}/monthly-comparison${qs ? "?" + qs : ""}`;
 
   const res = await fetch(url, options);
   if (!res.ok) {
