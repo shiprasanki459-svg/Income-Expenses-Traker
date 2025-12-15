@@ -7,7 +7,7 @@
     },
     {
       "src": "^(.*)$",
-      "dest": "/index.html"
+      "dest": "/your-dashboard-project/frontend/dist/index.html"
     }
   ]
 }
