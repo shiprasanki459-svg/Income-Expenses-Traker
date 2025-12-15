@@ -11,14 +11,11 @@ const app = express();
 app.use(express.json());
 app.use(morgan("tiny"));
 // safe CORS handling
-const rawOrigins = process.env.ORIGIN || '';
-const origins = rawOrigins.split(',')
-  .map(s => s.trim())
-  .filter(Boolean);
-
 app.use(cors({
-  origin: origins.length === 0 ? '*' : origins.length === 1 ? origins[0] : origins
+  origin: true,
+  credentials: true
 }));
+
 
 app.get("/api/health", (_, res) => res.json({ ok: true }));
 app.use("/api", require("./routes/dashboard"));
