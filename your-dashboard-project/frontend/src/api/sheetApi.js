@@ -1,5 +1,5 @@
 // src/api/sheetApi.js
-const API_BASE = import.meta.env.VITE_API_BASE || "";
+const API_BASE = import.meta.env.VITE_API_BASE || "/api";
 
 export async function fetchMonthlyComparison(params = {}, options = {}) {
   const qs = new URLSearchParams(params).toString();

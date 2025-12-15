@@ -23,7 +23,11 @@ async function fetchBankSheetRows() {
   const url = process.env.BANK_SHEET_CSV_URL;
   if (!url) throw new Error("BANK_SHEET_CSV_URL missing in .env");
 
-  const { data: csv } = await axios.get(url, { responseType: "text" });
+  const { data: csv } = await axios.get(url, {
+                                  responseType: "text",
+                                  timeout: 8000
+                                });
+
   const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true });
 
   const rows = parsed.data.map(canonicalizeRow);

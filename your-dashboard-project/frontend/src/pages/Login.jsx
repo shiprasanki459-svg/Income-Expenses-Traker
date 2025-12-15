@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./../styles/login.css";
 
 // ✅ correct
-const API = import.meta.env.VITE_API_BASE || "";
+const API = import.meta.env.VITE_API_BASE || "/api";
 
 
 export default function Login({ onLogin }) {
