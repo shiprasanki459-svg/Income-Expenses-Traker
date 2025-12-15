@@ -11,7 +11,7 @@ import * as XLSX from "xlsx-js-style";
 
 // 👇 Add this line to read the backend base URL from frontend .env
 // read base URL (Vite env) or fallback to backend API base
-const API = (import.meta.env.VITE_API_BASE || "/api").replace(/\/$/, "");
+const API = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 
 // frontend-safe number parser (same logic as backend toNum)
 const safeNum = (v) => {

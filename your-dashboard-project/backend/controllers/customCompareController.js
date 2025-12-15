@@ -1,5 +1,5 @@
 // backend/controllers/customCompareController.js
-import { fetchSheetRows } from "../services/sheetsService.js";
+const { fetchSheetRows } = require("../services/sheetsService");
 
 /* ---------- helpers (same style as dashboardController) ---------- */
 const toNum = (v) => {
@@ -111,7 +111,7 @@ const blankAgg = (name) => ({
 // GET /api/month/items
 // Return unique product names (read directly from sheet product column(s))
 // This helps the frontend display items in stable order if needed.
-export const getItemsFromSheet = async (req, res) => {
+exports.getItemsFromSheet = async (req, res) => {
   try {
     console.log("[REQ] GET /month/items");
     const raw = await fetchSheetRows();
@@ -137,7 +137,7 @@ export const getItemsFromSheet = async (req, res) => {
 // POST /api/month/custom-compare
 // Body: { left: { start, end }, right: { start, end }, items?: [ ... ] }
 // Returns: { leftSummary, rightSummary, rows: [ { item, left:{...}, right:{...} } ] }
-export const postCustomCompare = async (req, res) => {
+exports.postCustomCompare = async (req, res) => {
   try {
     console.log("[REQ] POST /month/custom-compare", JSON.stringify(req.body).slice(0,400));
     const { left, right, items } = req.body || {};

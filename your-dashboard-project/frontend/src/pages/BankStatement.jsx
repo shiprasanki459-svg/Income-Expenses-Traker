@@ -5,9 +5,9 @@ import "../styles/rowTwo.css";
 import "../styles/bottomPanel.css";
 import "../styles/bankPage.css";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "";
-const BANK_API = `${API_BASE}/api/bank`;
-
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+const API = `${API_BASE}/api`;
+const BANK_API = `${API}/bank`;
 
 // helper
 async function fetchJson(url, opts) {

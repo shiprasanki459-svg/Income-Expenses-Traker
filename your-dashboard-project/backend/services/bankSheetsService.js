@@ -1,10 +1,9 @@
 // backend/services/bankSheetsService.js
-import axios from "axios";
-import Papa from "papaparse";
+const axios = require("axios");
+const Papa = require("papaparse");
 
 // reuse the same header aliases from sheetsService
-import { HEADER_ALIASES } from "./sheetsService.js";
-
+const { HEADER_ALIASES } = require("./sheetsService");
 
 // same canonicalization as dashboard
 function canonicalizeRow(row) {
@@ -23,11 +22,7 @@ async function fetchBankSheetRows() {
   const url = process.env.BANK_SHEET_CSV_URL;
   if (!url) throw new Error("BANK_SHEET_CSV_URL missing in .env");
 
-  const { data: csv } = await axios.get(url, {
-                                  responseType: "text",
-                                  timeout: 8000
-                                });
-
+  const { data: csv } = await axios.get(url, { responseType: "text" });
   const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true });
 
   const rows = parsed.data.map(canonicalizeRow);
@@ -43,4 +38,4 @@ async function fetchBankSheetRows() {
   return rows;
 }
 
-export { fetchBankSheetRows };
+module.exports = { fetchBankSheetRows };

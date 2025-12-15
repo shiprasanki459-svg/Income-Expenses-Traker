@@ -1,8 +1,36 @@
-//backend/server.js
-import app from "./app.js";
+// backend/server.js
+const express = require("express");
+const cors = require("cors");
+const morgan = require("morgan");
+require("dotenv").config();
 
-const PORT = process.env.PORT || 5000;
+const app = express();
 
-app.listen(PORT, () => {
-  console.log(`✅ API running on http://localhost:${PORT}`);
-});
+app.use(express.json());
+app.use(morgan("tiny"));
+// safe CORS handling
+const rawOrigins = process.env.ORIGIN || '';
+const origins = rawOrigins.split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: origins.length === 0 ? '*' : origins.length === 1 ? origins[0] : origins
+}));
+
+app.get("/api/health", (_, res) => res.json({ ok: true }));
+app.use("/api", require("./routes/dashboard"));
+app.use("/api/auth", require("./routes/auth"));
+
+// after: app.use("/api", require("./routes/dashboard"));
+app.use("/api/monthly-comparison", require("./routes/monthlyComparison"));
+
+app.use("/api/bank", require("./routes/bank"));
+
+// existing requires...
+app.use("/api/month", require("./routes/customMonthRoutes"));
+
+
+
+const port = process.env.PORT || 5000;
+app.listen(port, () => console.log(`API on :${port}`));

@@ -1,7 +1,6 @@
 // backend/services/sheetsService.js
-import axios from "axios";
-import Papa from "papaparse";
-
+const axios = require("axios");
+const Papa = require("papaparse");
 
 /**
  * Map different header spellings to canonical lowercase keys
@@ -65,11 +64,7 @@ async function fetchSheetRows() {
   const url = process.env.SHEET_CSV_URL;
   if (!url) throw new Error("SHEET_CSV_URL missing in .env");
 
-  const { data: csv } = await axios.get(url, {
-                                  responseType: "text",
-                                  timeout: 8000
-                                });
-
+  const { data: csv } = await axios.get(url, { responseType: "text" });
   const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true });
 
   const rows = parsed.data.map(canonicalizeRow);
@@ -83,4 +78,4 @@ async function fetchSheetRows() {
   return rows;
 }
 
-export { fetchSheetRows, HEADER_ALIASES };
+module.exports = { fetchSheetRows, HEADER_ALIASES };

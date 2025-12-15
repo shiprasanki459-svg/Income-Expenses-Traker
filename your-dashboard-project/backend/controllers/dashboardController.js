@@ -1,5 +1,5 @@
 // backend/controllers/dashboardController.js
-import { fetchSheetRows } from "../services/sheetsService.js";
+const { fetchSheetRows } = require("../services/sheetsService");
 
 /* ---------- helpers ---------- */
 const toNum = (v) => {
@@ -232,7 +232,7 @@ const blankAgg = (name) => ({
 // so that the product-summary returns PL Codes (frontend selects PL Codes).
 
 // Top dual table: group by PL Code, aggregate, then split by explicit lists
-export const getProductSummary = async (req, res) => {
+exports.getProductSummary = async (req, res) => {
   try {
     console.log("[REQ] /product-summary query:", req.query);
     // before: const raw = await fetchSheetRows();
@@ -308,7 +308,7 @@ const pairs = Array.from({ length: max }).map((_, i) => ({ left: leftFull[i] || 
 
 // Types (grouping codes) for the selected PL Code
 // frontend calls /types?plCode=<PL Code>
-export const getTypesByProduct = async (req, res) => {
+exports.getTypesByProduct = async (req, res) => {
   try {
     const { plCode } = req.query;
     console.log("[REQ] /types query:", req.query);
@@ -340,7 +340,7 @@ export const getTypesByProduct = async (req, res) => {
 // Parties for selected PL Code + grouping code
 // frontend calls /parties?plCode=...&groupCode=...
 // Party values are taken from "product name" column (per new mapping)
-export const getPartiesByType = async (req, res) => {
+exports.getPartiesByType = async (req, res) => {
   try {
     const { plCode, groupCode } = req.query;
     console.log("[REQ] /parties query:", req.query);
@@ -375,7 +375,7 @@ export const getPartiesByType = async (req, res) => {
 
 // Invoice list (bottom): return FULL RAW ROWS with a stable column order
 // frontend calls /invoices?productName=...&plCode=...&groupCode=...
-export const getInvoices = async (req, res) => {
+exports.getInvoices = async (req, res) => {
   try {
     const { plCode, groupCode, productName } = req.query;
     console.log("[REQ] /invoices query:", req.query);
@@ -426,7 +426,7 @@ export const getInvoices = async (req, res) => {
 
 /* ----------- Opening Balance (PL Code: 'Opening Balance') ----------- */
 
-export const getOpeningBalance = async (req, res) => {
+exports.getOpeningBalance = async (req, res) => {
   try {
     console.log("[REQ] /opening-balance");
 
@@ -478,7 +478,7 @@ export const getOpeningBalance = async (req, res) => {
 
 /* ----------- Nagdi Tutra (PL Code: 'Nagdi Tutra') ----------- */
 
-export const getNagdiTutra = async (req, res) => {
+exports.getNagdiTutra = async (req, res) => {
   try {
     console.log("[REQ] /nagdi-tutra", req.query);
 

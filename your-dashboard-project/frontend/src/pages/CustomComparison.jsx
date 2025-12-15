@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import "../styles/customComparison.css";
 
-const API = import.meta.env.VITE_API_BASE || "/api";
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export default function CustomComparison() {
   // date ranges for left and right

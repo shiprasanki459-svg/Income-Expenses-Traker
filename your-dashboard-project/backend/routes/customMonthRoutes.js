@@ -1,11 +1,13 @@
 // backend/routes/customMonthRoutes.js
-
-import express from "express";
-import * as customCompare from "../controllers/customCompareController.js";
-
+const express = require("express");
 const router = express.Router();
 
+const customCompare = require("../controllers/customCompareController");
+
+// GET items from sheet (optional - frontend can call if it wants item list)
 router.get("/items", customCompare.getItemsFromSheet);
+
+// POST custom compare
 router.post("/custom-compare", customCompare.postCustomCompare);
 
-export default router;
+module.exports = router;
