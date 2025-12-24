@@ -4,10 +4,20 @@ const { fetchSheetRows } = require("../services/sheetsService");
 /* ---------- helpers (same style as dashboardController) ---------- */
 const toNum = (v) => {
   if (v === null || v === undefined) return 0;
-  const cleaned = String(v).replace(/[^0-9.\-]/g, "");
-  if (cleaned === "" || cleaned === "." || cleaned === "-" || cleaned === "-.") return 0;
+
+  const s = String(v).trim();
+  if (!s) return 0;
+
+  // Detect accounting negative like (123.45)
+  const isParenNegative = /^\(.*\)$/.test(s);
+
+  // Remove commas, parentheses, spaces
+  const cleaned = s.replace(/[(),\s]/g, "");
+
   const n = Number(cleaned);
-  return Number.isFinite(n) ? n : 0;
+  if (!Number.isFinite(n)) return 0;
+
+  return isParenNegative ? -n : n;
 };
 const sumBy = (arr, key) => arr.reduce((t, r) => t + toNum(r[key]), 0);
 const avgBy = (arr, key) => {
@@ -19,6 +29,8 @@ const avgBy = (arr, key) => {
   return count ? (sum / count) : 0;
 };
 const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+const round3 = (n) => Math.round((Number(n) || 0) * 1000) / 1000;
+
 
 const groupBy = (arr, key) =>
   arr.reduce((m, r) => {
@@ -28,51 +40,82 @@ const groupBy = (arr, key) =>
     return m;
   }, {});
 
+
+
+  // ✅ weighted average rate = Σ(rate × quantity) / Σ(quantity)
+const weightedAvgRate = (arr, rateKey, qtyKey) => {
+  let weightedSum = 0;
+  let qtySum = 0;
+
+  for (const r of arr) {
+    const rate = toNum(r[rateKey]);
+    const qty  = toNum(r[qtyKey]);
+
+    if (!Number.isFinite(rate) || !Number.isFinite(qty)) continue;
+    if (qty === 0) continue;
+
+    weightedSum += rate * qty;
+    qtySum += qty;
+  }
+
+  return qtySum ? (weightedSum / qtySum) : 0;
+};
+
+
 // Date parsing & selection helpers (same logic as dashboardController)
 const toDate = (raw) => {
   if (!raw) return null;
   const s = String(raw).trim();
-  const d1 = new Date(s);
-  if (!isNaN(d1)) return d1;
-  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+
+  // ✅ FIRST: DD-MM-YYYY or DD/MM/YYYY (with optional time)
+  const m = s.match(
+    /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+  );
+
   if (m) {
-    const dd = Number(m[1]), mm = Number(m[2]) - 1, yyyy = Number(m[3] < 100 ? 2000 + Number(m[3]) : m[3]);
-    const d = new Date(yyyy, mm, dd);
-    if (!isNaN(d)) return d;
+    const dd = Number(m[1]);
+    const mm = Number(m[2]) - 1;
+    const yyyy = Number(m[3]) < 100 ? 2000 + Number(m[3]) : Number(m[3]);
+    const hh = Number(m[4] || 0);
+    const min = Number(m[5] || 0);
+    const ss = Number(m[6] || 0);
+    return new Date(yyyy, mm, dd, hh, min, ss);
   }
-  return null;
+
+  // ✅ ISO fallback LAST
+  const iso = new Date(s);
+  return isNaN(iso) ? null : iso;
 };
+
+
+
 const getRowDate = (r) => toDate(r["date"]) || toDate(r["time stamp"]);
 
-function withDefaultMonthYear(q = {}) {
-  const hasAny =
-    (q.start && q.start.trim && q.start.trim()) ||
-    (q.end && q.end.trim && q.end.trim()) ||
-    q.month !== undefined ||
-    q.year !== undefined;
-  if (hasAny) return q;
-  const today = new Date();
-  return { ...q, month: today.getMonth() + 1, year: today.getFullYear() };
-}
+
 
 const filterRowsByTime = (rows, q) => {
-  let start = q.start ? new Date(q.start) : null;
-  let end   = q.end   ? new Date(q.end)   : null;
-  const month = q.month ? Number(q.month) : null;
-  const year  = q.year  ? Number(q.year) : null;
+  let s = null;
+  let e = null;
 
-  if (end) end = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999);
+  if (q.start) {
+    const sd = toDate(q.start);
+    if (sd) s = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate(), 0, 0, 0);
+  }
+
+  if (q.end) {
+    const ed = toDate(q.end);
+    if (ed) e = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate(), 23, 59, 59, 999);
+  }
 
   return rows.filter(r => {
     const d = getRowDate(r);
     if (!d) return false;
-    if (start && d < start) return false;
-    if (end && d > end) return false;
-    if (month && (d.getMonth() + 1) !== month) return false;
-    if (year && d.getFullYear() !== year) return false;
+    if (s && d < s) return false;
+    if (e && d > e) return false;
     return true;
   });
 };
+
 
 // normalize row keys to lower-case trimmed keys (same as dashboard)
 const normalizeRows = (rows) => {
@@ -89,12 +132,14 @@ const normalizeRows = (rows) => {
 // aggregator per product (same fields as frontend expects)
 const asAggRowMinimal = (name, list) => ({
   product: name,
-  stockQty: round2(sumBy(list, "stock qty")),
-  qty1:     round2(sumBy(list, "qnty")),
-  qty2:     round2(sumBy(list, "quantity")),
-  rate:     Number(avgBy(list, "rate").toFixed(2)),
+  stockQty: round3(sumBy(list, "stock qty")),
+  qty1:     round3(sumBy(list, "qnty")),
+  qty2:     round3(sumBy(list, "quantity")),
+  rate:     Number(weightedAvgRate(list, "rate", "stock qty").toFixed(2)),
   amount:   round2(sumBy(list, "amount")),
 });
+
+
 
 // blank aggregate: return nulls so frontend shows "-" using its fmt()
 const blankAgg = (name) => ({

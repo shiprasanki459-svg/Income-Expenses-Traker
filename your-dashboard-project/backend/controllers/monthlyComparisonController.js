@@ -4,31 +4,39 @@ const { fetchSheetRows } = require("../services/sheetsService");
 /* small helpers copied from your dashboardController style */
 const toNum = (v) => {
   if (v === null || v === undefined) return 0;
-  const cleaned = String(v).replace(/[^0-9.\-]/g, "");
-  if (cleaned === "" || cleaned === "." || cleaned === "-" || cleaned === "-.") return 0;
+
+  const s = String(v).trim();
+  if (!s) return 0;
+
+  // Detect accounting negative like (123.45)
+  const isParenNegative = /^\(.*\)$/.test(s);
+
+  // Remove commas, parentheses, spaces
+  const cleaned = s.replace(/[(),\s]/g, "");
+
   const n = Number(cleaned);
-  return Number.isFinite(n) ? n : 0;
+  if (!Number.isFinite(n)) return 0;
+
+  return isParenNegative ? -n : n;
 };
 const sumBy = (arr, key) => arr.reduce((t, r) => t + toNum(r[key]), 0);
-const avgBy = (arr, key) => {
-  let sum = 0, count = 0;
-  for (const r of arr) {
-    const n = toNum(r[key]);
-    if (Number.isFinite(n)) { sum += n; count++; }
-  }
-  return count ? (sum / count) : 0;
-};
-const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+const weightedAvgRate = (arr, rateKey, qtyKey) => {
+  let weightedSum = 0;
+  let qtySum = 0;
 
-const DEFAULT_ROWS = [
-  "Sales of Rice","Sales Return Rice","CMR Revenue","Sales of Bran","Sales of Husk",
-  "Sales of DORB","Sales of Motakuro","Sales of Scrap","Sales of Reject Bag","Misc Income",
-  "Purchase of Paddy","Purchase of Re Rice","Purchase of Rice","Purchase Return Paddy","Paddy Bata",
-  "Purchase of CMR Paddy","Purchase of Wheat","Broken Rice Palviser","Purchase of Store","Purchase of Bag",
-  "Bank Charges","Insurance","Marketing Fee","Salary & wages","GST Expenses","Bank Interest",
-  "SIDBI Bank","Advance Income tax","Freight","Lorry Expenses","Daily Expenses","Monthly Expenses",
-  "CMR Expenses","Manufactureing Expenses","Admin Expenses","Brokarage","Deisel","Misc Expenses"
-];
+  for (const r of arr) {
+    const rate = toNum(r[rateKey]);
+    const qty  = toNum(r[qtyKey]);
+    if (!Number.isFinite(rate) || !Number.isFinite(qty)) continue;
+    if (qty === 0) continue;
+
+    weightedSum += rate * qty;
+    qtySum += qty;
+  }
+  return qtySum ? (weightedSum / qtySum) : 0;
+};
+
+const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 
 const DEFAULT_MONTHS = ["April","May","June","July","August","September","October","November","December","January","February","March"];
 
@@ -37,16 +45,27 @@ const DEFAULT_MONTHS = ["April","May","June","July","August","September","Octobe
 const toDate = (raw) => {
   if (!raw) return null;
   const s = String(raw).trim();
-  const d1 = new Date(s);
-  if (!isNaN(d1)) return d1;
-  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+
+  // FIRST: DD-MM-YYYY or DD/MM/YYYY (with optional time)
+  const m = s.match(
+    /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+  );
   if (m) {
-    const dd = Number(m[1]), mm = Number(m[2]) - 1, yyyy = Number(m[3] < 100 ? 2000 + Number(m[3]) : m[3]);
-    const d = new Date(yyyy, mm, dd);
-    if (!isNaN(d)) return d;
+    const dd = Number(m[1]);
+    const mm = Number(m[2]) - 1;
+    const yyyy = Number(m[3]) < 100 ? 2000 + Number(m[3]) : Number(m[3]);
+    const hh = Number(m[4] || 0);
+    const min = Number(m[5] || 0);
+    const ss = Number(m[6] || 0);
+    return new Date(yyyy, mm, dd, hh, min, ss);
   }
-  return null;
+
+  // THEN: ISO fallback
+  const iso = new Date(s);
+  return isNaN(iso) ? null : iso;
 };
+
+
 const getRowDate = (r) => toDate(r["date"]) || toDate(r["time stamp"]);
 
 function monthNameFromDate(d) {
@@ -74,7 +93,7 @@ function normalizeRows(rows) {
 
 
 
-function withDefaultMonthYear(q = {}) {
+/*function withDefaultMonthYear(q = {}) {
   const hasAny =
     (q.start && q.start.trim && q.start.trim()) ||
     (q.end && q.end.trim && q.end.trim()) ||
@@ -89,29 +108,16 @@ function withDefaultMonthYear(q = {}) {
     month: today.getMonth() + 1, // 1..12
     year: today.getFullYear(),
   };
-}
+}*/
 
-function filterRowsFiscalYear(rows, fiscalYearStart) {
+function filterRowsByFinancialYear(rows, fyStartYear) {
+  const start = new Date(fyStartYear, 3, 1, 0, 0, 0); // 1 April
+  const end   = new Date(fyStartYear + 1, 2, 31, 23, 59, 59); // 31 March
+
   return rows.filter(r => {
     const d = getRowDate(r);
     if (!d) return false;
-
-    const fyStart = Number(fiscalYearStart);
-    const fyEnd = fyStart + 1;
-
-    const m = d.getMonth();
-
-    // Apr–Dec → year must match fyStart
-    if (m >= 3 && m <= 11) {
-      return d.getFullYear() === fyStart;
-    }
-
-    // Jan–Mar → year must match fyStart + 1
-    if (m >= 0 && m <= 2) {
-      return d.getFullYear() === fyEnd;
-    }
-
-    return false;
+    return d >= start && d <= end;
   });
 }
 
@@ -122,10 +128,10 @@ exports.getMonthlyComparison = async (req, res) => {
   try {
     const raw = await fetchSheetRows();
     const rawRows = normalizeRows(raw);
-    const query = withDefaultMonthYear(req.query);
+    /*const query = withDefaultMonthYear(req.query);*/
     
-    const fiscalYearStart = Number(query.year); // example: 2025 for FY 2025–26
-    const rows = filterRowsFiscalYear(rawRows, fiscalYearStart);
+    const fiscalYearStart = Number(req.query.year); // 2025
+    const rows = filterRowsByFinancialYear(rawRows, fiscalYearStart);
 
     // 1) Build DYNAMIC label list from sheet (PL Code / Product Name)
     // ---------------------------
@@ -177,7 +183,13 @@ exports.getMonthlyComparison = async (req, res) => {
       }
 
       // Order: prefer DEFAULT_ROWS ordering but only keep existing ones
-      const labels = [];
+      const labels = Array.from(labelSet).sort((a, b) => {
+        const na = normLabel(a);
+        const nb = normLabel(b);
+        return na.localeCompare(nb);
+      });
+
+      /*const labels = [];
       const tmp = new Set(Array.from(labelSet)); // copy
 
       for (const pref of DEFAULT_ROWS) {
@@ -196,7 +208,7 @@ exports.getMonthlyComparison = async (req, res) => {
         if (na > nb) return 1;
         return 0;
       });
-      labels.push(...remaining);
+      labels.push(...remaining);*/
 
 
     // 2) Initialise data map for [label][month]
@@ -241,13 +253,20 @@ exports.getMonthlyComparison = async (req, res) => {
         }
         const list = cell.rows;
 
-        const qtySum    = sumBy(list, "stock qty");   // your chosen qty source
-        const rateAvg   = avgBy(list, "rate");
+        const qtySum = sumBy(list, "stock qty");
+
+        const rateWAvg = weightedAvgRate(
+          list,
+          "rate",
+          "stock qty"
+        );
+
         const amountSum = sumBy(list, "amount");
 
+
         data[label][m] = {
-          qty:    qtySum === 0 ? null : round2(qtySum),
-          rate:   rateAvg ? Number(rateAvg.toFixed(2)) : null,
+          qty:    qtySum === 0 ? null : qtySum,                 // keep fractional qty
+          rate:   rateWAvg ? Number(rateWAvg.toFixed(2)) : null,
           amount: amountSum === 0 ? null : round2(amountSum),
         };
       }

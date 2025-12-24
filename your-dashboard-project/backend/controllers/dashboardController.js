@@ -2,22 +2,48 @@
 const { fetchSheetRows } = require("../services/sheetsService");
 
 /* ---------- helpers ---------- */
+// ✅ accounting-aware numeric parser
 const toNum = (v) => {
   if (v === null || v === undefined) return 0;
-  const cleaned = String(v).replace(/[^0-9.\-]/g, "");
-  if (cleaned === "" || cleaned === "." || cleaned === "-" || cleaned === "-.") return 0;
+
+  const s = String(v).trim();
+  if (!s) return 0;
+
+  // Detect accounting negative like (123.45)
+  const isParenNegative = /^\(.*\)$/.test(s);
+
+  // Remove commas, parentheses, spaces
+  const cleaned = s.replace(/[(),\s]/g, "");
+
   const n = Number(cleaned);
-  return Number.isFinite(n) ? n : 0;
+  if (!Number.isFinite(n)) return 0;
+
+  return isParenNegative ? -n : n;
 };
+
+
 const sumBy = (arr, key) => arr.reduce((t, r) => t + toNum(r[key]), 0);
-const avgBy = (arr, key) => {
-  let sum = 0, count = 0;
+// ✅ weighted average rate = Σ(rate × quantity) / Σ(quantity)
+const weightedAvgRate = (arr, rateKey, qtyKey) => {
+  let weightedSum = 0;
+  let qtySum = 0;
+
   for (const r of arr) {
-    const n = toNum(r[key]);
-    if (Number.isFinite(n)) { sum += n; count++; }
+    const rate = toNum(r[rateKey]);
+    const qty  = toNum(r[qtyKey]);
+
+    if (!Number.isFinite(rate) || !Number.isFinite(qty)) continue;
+    if (qty === 0) continue;
+
+    weightedSum += rate * qty;
+    qtySum += qty;
   }
-  return count ? (sum / count) : 0;
+
+  return qtySum ? (weightedSum / qtySum) : 0;
 };
+
+
+
 const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 
 const groupBy = (arr, key) =>
@@ -33,106 +59,108 @@ const groupBy = (arr, key) =>
 //  - Quantity-2  -> from column "Quantity" (normalized => "quantity")
 const asAggRow = (base, list) => ({
   ...base,
-  stockQty: round2(sumBy(list, "stock qty")),   // normalized key
-  q1:       round2(sumBy(list, "qnty")),        // normalized key
-  q2:       round2(sumBy(list, "quantity")),    // normalized key
-  rate:     Number(avgBy(list, "rate").toFixed(2)),
-  amount:   sumBy(list, "amount"),
+
+  // ✅ keep full fractional value
+  stockQty: sumBy(list, "stock qty"),
+  q1:       sumBy(list, "quantity"),
+  q2:       sumBy(list, "qnty"),
+
+  // ✅ rate must stay rounded
+  rate: Number(
+    weightedAvgRate(list, "rate", "stock qty")
+  ).toFixed(2),
+
+  // ✅ amount must stay rounded
+  amount: round2(sumBy(list, "amount")),
 });
+
 
 // If no time query is provided, default to current month/year (1..12)
 function withDefaultMonthYear(q = {}) {
-  const hasAny =
-    (q.start && q.start.trim && q.start.trim()) ||
-    (q.end && q.end.trim && q.end.trim()) ||
-    q.month !== undefined ||
-    q.year !== undefined;
+  // 🔥 if date range is present, NEVER inject month/year
+  if (q.start || q.end) return q;
 
-  if (hasAny) return q;
+  if (q.month || q.year) return q;
 
-  const today = new Date();
-  return {
-    ...q,
-    month: today.getMonth() + 1,   // 1..12
-    year: today.getFullYear(),
-  };
+  const t = new Date();
+  return { ...q, month: t.getMonth() + 1, year: t.getFullYear() };
 }
+
+
 
 // --- Date helpers (keep your existing toDate) ---
 const toDate = (raw) => {
   if (!raw) return null;
   const s = String(raw).trim();
 
-  // Try ISO first
-  const d1 = new Date(s);
-  if (!isNaN(d1)) return d1;
+  // ✅ FIRST: DD-MM-YYYY or DD/MM/YYYY (with optional time)
+  const m = s.match(
+    /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+  );
 
-  // Try dd/mm/yyyy or dd-mm-yyyy
-  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
   if (m) {
-    const dd = Number(m[1]), mm = Number(m[2]) - 1;
-    // handle 2-digit year -> 2000+
+    const dd = Number(m[1]);
+    const mm = Number(m[2]) - 1;
     const yyyy = Number(m[3]) < 100 ? 2000 + Number(m[3]) : Number(m[3]);
-    const d = new Date(yyyy, mm, dd);
-    if (!isNaN(d)) return d;
+    const hh = Number(m[4] || 0);
+    const min = Number(m[5] || 0);
+    const ss = Number(m[6] || 0);
+    return new Date(yyyy, mm, dd, hh, min, ss);
   }
 
-  return null;
+  // ✅ ONLY NOW: ISO fallback (YYYY-MM-DD)
+  const iso = new Date(s);
+  return isNaN(iso) ? null : iso;
 };
 
-// Use "date" first, fallback to "time stamp" — but also support "new_date" object and many variants
+
+
 const getRowDate = (r) => {
-  if (!r || typeof r !== "object") return null;
+  if (!r) return null;
 
-  // canonical keys we might have after normalization:
-  // prefer 'date', then 'new date', then 'time stamp', then 'timestamp'
-  const candidates = [
-    r["date"],
-    r["new date"],
-    r["time stamp"],
-    r["timestamp"],
-    r["time_stamp"],
-    r["time"] // defensive
-  ];
+  const d1 = toDate(r["date"]);
+  if (d1 instanceof Date && !isNaN(d1)) return d1;
 
-  for (const raw of candidates) {
-    if (raw === undefined || raw === null) continue;
-    // BigQuery sometimes returns { value: "YYYY-MM-DD" }
-    const maybe = (typeof raw === "object" && raw.value !== undefined) ? raw.value : raw;
-    const d = toDate(maybe);
-    if (d) return d;
-  }
-
-  // last-ditch: try parsing the timestamp field if present as stringified object
-  // (some rows may have combined timestamp like "13-11-2025 00:00")
-  const tsRaw = r["timestamp"] || r["time stamp"] || r["time"];
-  if (tsRaw) {
-    const rawVal = (typeof tsRaw === "object" && tsRaw.value !== undefined) ? tsRaw.value : tsRaw;
-    const d = toDate(rawVal);
-    if (d) return d;
-  }
+  const d2 = toDate(r["time stamp"]);
+  if (d2 instanceof Date && !isNaN(d2)) return d2;
 
   return null;
 };
 
 // Apply filters from query: start (YYYY-MM-DD), end (YYYY-MM-DD), month (1-12), year (YYYY')
 const filterRowsByTime = (rows, q) => {
-  let start = q.start ? new Date(q.start) : null;
-  let end   = q.end   ? new Date(q.end)   : null;
-  const month = q.month ? Number(q.month) : null;    // 1..12
-  const year  = q.year  ? Number(q.year)  : null;    // YYYY
+  let { start, end, month, year } = q;
 
-  // Normalize end to inclusive (end-of-day)
-  if (end) end = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999);
+  // 🔥 Date range overrides month/year
+  if (start || end) {
+    month = null;
+    year = null;
+  }
+
+  let s = null;
+  let e = null;
+
+  if (start) {
+    const sd = new Date(start + "T00:00:00");
+    s = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate(), 0, 0, 0);
+  }
+
+  if (end) {
+    const ed = new Date(end + "T23:59:59");
+    e = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate(), 23, 59, 59);
+  }
+
+  month = month ? Number(month) : null;
+  year  = year  ? Number(year)  : null;
 
   return rows.filter(r => {
     const d = getRowDate(r);
     if (!d) return false;
 
-    if (start && d < start) return false;
-    if (end && d > end) return false;
+    if (s && d < s) return false;
+    if (e && d > e) return false;
 
-    if (month && (d.getMonth() + 1) !== month) return false;
+    if (month && d.getMonth() + 1 !== month) return false;
     if (year && d.getFullYear() !== year) return false;
 
     return true;
@@ -241,7 +269,11 @@ exports.getProductSummary = async (req, res) => {
     debugLogSample("normalized rows (first)", rows, 1);
 
 
-    const scoped = filterRowsByTime(rows, withDefaultMonthYear(req.query));
+   const scoped = filterRowsByTime(
+      rows,
+      withDefaultMonthYear({ ...req.query })
+    );
+
     debugLogSample("scoped after time filter", scoped, 1);
 
     const byPL = groupBy(scoped, "pl code");
@@ -317,7 +349,11 @@ exports.getTypesByProduct = async (req, res) => {
     const rows = normalizeRows(raw);
     debugLogSample("normalized rows (types)", rows, 1);
 
-    const scoped = filterRowsByTime(rows, withDefaultMonthYear(req.query));
+   const scoped = filterRowsByTime(
+      rows,
+      withDefaultMonthYear({ ...req.query })
+    );
+
     debugLogSample("scoped after time filter (types)", scoped, 1);
 
     const filtered = scoped.filter(r => (r["pl code"] || "").toString().trim() === (plCode || "").toString().trim());
@@ -350,7 +386,11 @@ exports.getPartiesByType = async (req, res) => {
     const rows = normalizeRows(raw);
     debugLogSample("normalized rows (parties)", rows, 1);
 
-    const scoped = filterRowsByTime(rows, withDefaultMonthYear(req.query));
+   const scoped = filterRowsByTime(
+      rows,
+      withDefaultMonthYear({ ...req.query })
+    );
+
     debugLogSample("scoped after time filter (parties)", scoped, 1);
 
     const filtered = scoped.filter(r =>
@@ -385,7 +425,11 @@ exports.getInvoices = async (req, res) => {
     const rows = normalizeRows(raw);
     debugLogSample("normalized rows (invoices)", rows, 1);
 
-    const scoped = filterRowsByTime(rows, withDefaultMonthYear(req.query));
+   const scoped = filterRowsByTime(
+      rows,
+      withDefaultMonthYear({ ...req.query })
+    );
+
     debugLogSample("scoped after time filter (invoices)", scoped, 1);
 
     const filtered = scoped.filter(r =>
@@ -486,7 +530,11 @@ exports.getNagdiTutra = async (req, res) => {
     const rows = normalizeRows(raw);
 
     // apply same time filter as dashboard (month/year/date range)
-    const scoped = filterRowsByTime(rows, withDefaultMonthYear(req.query));
+   const scoped = filterRowsByTime(
+      rows,
+      withDefaultMonthYear({ ...req.query })
+    );
+
     debugLogSample("scoped (nagdi tutra)", scoped, 1);
 
     // filter PL Code = 'Nagdi Tutra'

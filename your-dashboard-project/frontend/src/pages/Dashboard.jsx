@@ -211,12 +211,27 @@ function downloadStyledWorkbookFromAoA(aoa, opts = {}) {
 
 
 
+// 🔢 amount formatter (DISPLAY ONLY)
+const fmtAmt = (v) => {
+  if (v === null || v === undefined || isNaN(v)) return "-";
+  return Math.round(v).toLocaleString("en-IN");
+};
+
+// 🔢 quantity formatter (ALLOW fractions)
+const fmtQty = (v) => {
+  if (v === null || v === undefined || isNaN(v)) return "-";
+  return Number(v).toLocaleString("en-IN", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 4   // adjust if you want more/less
+  });
+};
+
+
 
 
 function DualProductTable({ rows = [], onProductClick, activeProduct }) {
   // rows is an array of { left?: productRow, right?: productRow }
   // productRow: { product, stockQty, q1, q2, rate, amount }
-  const fmt = (v) => (v === null || v === undefined || v === "" ? "-" : v);
 
   return (
     <div className="row-two__table-wrap">
@@ -279,11 +294,11 @@ function DualProductTable({ rows = [], onProductClick, activeProduct }) {
                         {row.left.product}
                       </button>
                     </td>
-                    <td><div className="cell-pill">{fmt(row.left.stockQty)}</div></td>
-                    <td><div className="cell-pill">{fmt(row.left.q1)}</div></td>
-                    <td><div className="cell-pill">{fmt(row.left.q2)}</div></td>
-                    <td><div className="cell-pill">{fmt(row.left.rate)}</div></td>
-                    <td><div className="cell-pill cell-right">{fmt(row.left.amount)}</div></td>
+                    <td><div className="cell-pill">{fmtQty(row.left.stockQty)}</div></td>
+                    <td><div className="cell-pill">{fmtQty(row.left.q1)}</div></td>
+                    <td><div className="cell-pill">{fmtQty(row.left.q2)}</div></td>
+                    <td><div className="cell-pill">{fmtAmt(row.left.rate)}</div></td>
+                    <td><div className="cell-pill cell-right">{fmtAmt(row.left.amount)}</div></td>
 
                   </>
                 ) : (
@@ -304,11 +319,11 @@ function DualProductTable({ rows = [], onProductClick, activeProduct }) {
                         {row.right.product}
                       </button>
                     </td>
-                    <td><div className="cell-pill">{fmt(row.right.stockQty)}</div></td>
-                    <td><div className="cell-pill">{fmt(row.right.q1)}</div></td>
-                    <td><div className="cell-pill">{fmt(row.right.q2)}</div></td>
-                    <td><div className="cell-pill">{fmt(row.right.rate)}</div></td>
-                    <td><div className="cell-pill cell-right">{fmt(row.right.amount)}</div></td>
+                    <td><div className="cell-pill">{fmtQty(row.right.stockQty)}</div></td>
+                    <td><div className="cell-pill">{fmtQty(row.right.q1)}</div></td>
+                    <td><div className="cell-pill">{fmtQty(row.right.q2)}</div></td>
+                    <td><div className="cell-pill">{fmtAmt(row.right.rate)}</div></td>
+                    <td><div className="cell-pill cell-right">{fmtAmt(row.right.amount)}</div></td>
 
                   </>
                 ) : (
@@ -373,11 +388,11 @@ function StickyStatsTable({ rows = [], onTypeClick, activeType }) {
                     {r.type}
                   </button>
                 </td>
-                <td><div className="cell-pill">{r.stockQty}</div></td>
-                <td><div className="cell-pill">{r.q1}</div></td>
-                <td><div className="cell-pill">{r.q2}</div></td>
-                <td><div className="cell-pill">{r.rate}</div></td>
-                <td><div className="cell-pill cell-right">{r.amount}</div></td>
+                <td><div className="cell-pill">{fmtQty(r.stockQty)}</div></td>
+                <td><div className="cell-pill">{fmtQty(r.q1)}</div></td>
+                <td><div className="cell-pill">{fmtQty(r.q2)}</div></td>
+                <td><div className="cell-pill">{fmtAmt(r.rate)}</div></td>
+                <td><div className="cell-pill cell-right">{fmtAmt(r.amount)}</div></td>
               </tr>
 
             ))
@@ -437,11 +452,11 @@ function StickyPartyTable({ rows = [], onPartyClick, activeParty }) {
                   </button>
                 </td>
 
-                <td><div className="cell-pill">{r.stockQty}</div></td>
-                <td><div className="cell-pill">{r.q1}</div></td>
-                <td><div className="cell-pill">{r.q2}</div></td>
-                <td><div className="cell-pill">{r.rate}</div></td>
-                <td><div className="cell-pill cell-right">{r.amount}</div></td>
+                <td><div className="cell-pill">{fmtQty(r.stockQty)}</div></td>
+                <td><div className="cell-pill">{fmtQty(r.q1)}</div></td>
+                <td><div className="cell-pill">{fmtQty(r.q2)}</div></td>
+                <td><div className="cell-pill">{fmtAmt(r.rate)}</div></td>
+                <td><div className="cell-pill cell-right">{fmtAmt(r.amount)}</div></td>
               </tr>
             ))
           )}

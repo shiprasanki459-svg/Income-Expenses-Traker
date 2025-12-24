@@ -19,9 +19,15 @@ async function fetchJson(url, opts) {
   try { return JSON.parse(text); } catch { return text; }
 }
 
+
+// 🔢 amount formatter (DISPLAY ONLY)
+const fmtAmt = (v) => {
+  if (v === null || v === undefined || isNaN(v)) return "-";
+  return Math.round(v).toLocaleString("en-IN");
+};
+
+
 /* ----------------- Small helpers ----------------- */
-
-
 
 
 // Attach global time filter query string
@@ -38,7 +44,6 @@ const withQS = (base, extra = {}, timeQS = {}) => {
 /* ----------------- TABLE COMPONENTS (2 cols) ----------------- */
 
 function DualProductTableBank({ rows = [], onProductClick, activeProduct }) {
-  const fmt = (v) => (v === null || v === undefined || v === "" ? "-" : v);
 
   return (
     <div className="bank-row-two__table-wrap">
@@ -53,9 +58,9 @@ function DualProductTableBank({ rows = [], onProductClick, activeProduct }) {
 
         <thead>
           <tr>
-            <th className="sticky-head">Grouping Code</th>
+            <th className="sticky-head">BS Code</th>
             <th>Amount</th>
-            <th className="sticky-head">Grouping Code</th>
+            <th className="sticky-head">BS Code</th>
             <th>Amount</th>
           </tr>
         </thead>
@@ -64,7 +69,7 @@ function DualProductTableBank({ rows = [], onProductClick, activeProduct }) {
           {rows.length === 0 ? (
             <tr>
               <td colSpan={4} style={{ textAlign: "center", padding: 24 }}>
-                No products to show
+                No products to show for this time period
               </td>
             </tr>
           ) : (
@@ -89,7 +94,7 @@ function DualProductTableBank({ rows = [], onProductClick, activeProduct }) {
                     </td>
                     <td>
                       <div className="cell-pill cell-right">
-                        {fmt(row.left.amount)}
+                        {fmtAmt(row.left.amount)}
                       </div>
                     </td>
                   </>
@@ -119,7 +124,7 @@ function DualProductTableBank({ rows = [], onProductClick, activeProduct }) {
                     </td>
                     <td>
                       <div className="cell-pill cell-right">
-                        {fmt(row.right.amount)}
+                        {fmtAmt(row.right.amount)}
                       </div>
                     </td>
                   </>
@@ -139,7 +144,6 @@ function DualProductTableBank({ rows = [], onProductClick, activeProduct }) {
 }
 
 function StickyStatsTableBank({ rows = [], onTypeClick, activeType }) {
-  const fmt = (v) => (v === null || v === undefined || v === "" ? "-" : v);
 
   return (
     <div className="bank-row-two__table-wrap">
@@ -151,7 +155,7 @@ function StickyStatsTableBank({ rows = [], onTypeClick, activeType }) {
         </colgroup>
         <thead>
           <tr>
-            <th className="sticky-col sticky-head">Type</th>
+            <th className="sticky-col sticky-head">Grouping Code</th>
             <th>Amount</th>
           </tr>
         </thead>
@@ -185,7 +189,7 @@ function StickyStatsTableBank({ rows = [], onTypeClick, activeType }) {
                   </button>
                 </td>
                 <td>
-                  <div className="cell-pill cell-right">{fmt(r.amount)}</div>
+                  <div className="cell-pill cell-right">{fmtAmt(r.amount)}</div>
                 </td>
               </tr>
             ))
@@ -197,7 +201,6 @@ function StickyStatsTableBank({ rows = [], onTypeClick, activeType }) {
 }
 
 function StickyPartyTableBank({ rows = [], onPartyClick, activeParty }) {
-  const fmt = (v) => (v === null || v === undefined || v === "" ? "-" : v);
 
   return (
     <div className="bank-row-two__table-wrap">
@@ -209,7 +212,7 @@ function StickyPartyTableBank({ rows = [], onPartyClick, activeParty }) {
         </colgroup>
         <thead>
           <tr>
-            <th className="sticky-col sticky-head">Party Wise</th>
+            <th className="sticky-col sticky-head">Name Wise</th>
             <th>Amount</th>
           </tr>
         </thead>
@@ -243,7 +246,7 @@ function StickyPartyTableBank({ rows = [], onPartyClick, activeParty }) {
                   </button>
                 </td>
                 <td>
-                  <div className="cell-pill cell-right">{fmt(r.amount)}</div>
+                  <div className="cell-pill cell-right">{fmtAmt(r.amount)}</div>
                 </td>
               </tr>
             ))

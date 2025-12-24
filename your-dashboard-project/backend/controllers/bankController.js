@@ -4,10 +4,22 @@ const { fetchBankSheetRows } = require("../services/bankSheetsService");
 /* ------------- Helpers ------------- */
 const toNum = (v) => {
   if (v === null || v === undefined) return 0;
-  const cleaned = String(v).replace(/[^0-9.\-]/g, "");
-  if (!cleaned || cleaned === "." || cleaned === "-" || cleaned === "-.") return 0;
-  return Number(cleaned);
+
+  const s = String(v).trim();
+  if (!s) return 0;
+
+  // Detect accounting negative like (123.45)
+  const isParenNegative = /^\(.*\)$/.test(s);
+
+  // Remove commas, parentheses, spaces
+  const cleaned = s.replace(/[(),\s]/g, "");
+
+  const n = Number(cleaned);
+  if (!Number.isFinite(n)) return 0;
+
+  return isParenNegative ? -n : n;
 };
+
 
 // normalize sheet row keys
 const normalizeRows = (rows) =>
@@ -22,38 +34,69 @@ const normalizeRows = (rows) =>
 // date parsing
 const toDate = (raw) => {
   if (!raw) return null;
-  const d1 = new Date(raw);
-  if (!isNaN(d1)) return d1;
 
   const s = String(raw).trim();
-  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
-  if (m) {
-    const dd = Number(m[1]);
-    const mm = Number(m[2]) - 1;
-    const y = Number(m[3] < 100 ? 2000 + Number(m[3]) : m[3]);
-    return new Date(y, mm, dd);
+
+  // Handle DD-MM-YY or DD/MM/YY
+  const m1 = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})$/);
+  if (m1) {
+    const dd = Number(m1[1]);
+    const mm = Number(m1[2]) - 1;
+    const yy = 2000 + Number(m1[3]);
+    return new Date(yy, mm, dd);
   }
-  return null;
+
+  // Handle DD-MM-YYYY
+  const m2 = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (m2) {
+    const dd = Number(m2[1]);
+    const mm = Number(m2[2]) - 1;
+    const yyyy = Number(m2[3]);
+    return new Date(yyyy, mm, dd);
+  }
+
+  // ISO fallback (YYYY-MM-DD)
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
 };
+
 
 const getRowDate = (r) => toDate(r["date"]) || toDate(r["time stamp"]);
 
 // default month/year when no filter provided
 function withDefaultMonthYear(q) {
-  const has = q.start || q.end || q.month || q.year;
-  if (has) return q;
+  // 🔥 if date range is present, NEVER inject month/year
+  if (q.start || q.end) return q;
+
+  if (q.month || q.year) return q;
 
   const t = new Date();
   return { ...q, month: t.getMonth() + 1, year: t.getFullYear() };
 }
 
+
 // filter rows based on date
 const filterRowsByTime = (rows, q) => {
   let { start, end, month, year } = q;
 
-  let s = start ? new Date(start) : null;
-  let e = end ? new Date(end) : null;
-  if (e) e = new Date(e.getFullYear(), e.getMonth(), e.getDate(), 23, 59, 59);
+  // 🔥 Date range overrides month/year
+  if (start || end) {
+    month = null;
+    year = null;
+  }
+
+  let s = null;
+  let e = null;
+
+  if (start) {
+    const sd = new Date(start);
+    s = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate(), 0, 0, 0);
+  }
+
+  if (end) {
+    const ed = new Date(end);
+    e = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate(), 23, 59, 59);
+  }
 
   month = month ? Number(month) : null;
   year = year ? Number(year) : null;
@@ -71,6 +114,10 @@ const filterRowsByTime = (rows, q) => {
     return true;
   });
 };
+
+
+
+
 
 /* ----------------------------------------------
    1) PRODUCT SUMMARY (top panel)
