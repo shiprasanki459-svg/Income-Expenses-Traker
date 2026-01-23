@@ -812,7 +812,7 @@ useEffect(() => {
 
 
 useEffect(() => {
-  fetch(withQS(`${API}/api/pl-summary`))
+  fetch(withQS(`/api/pl-summary`))
     .then(r => r.json())
     .then(j => {
       setSummaryBase(j.summaryBase || null);
