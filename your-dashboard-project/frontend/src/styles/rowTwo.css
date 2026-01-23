@@ -57,10 +57,16 @@
 
 /* Show BOTH scrollbars: fixed height + min-width on table */
 .row-two__table-wrap{
-  height: 260px;              /* fixed to force vertical scrollbar when content grows */
-  overflow: scroll;           /* always show both scrollbars (not auto) */
+  width: 100%;
+  max-width: 100%;
+  height: 260px;
+
+  overflow-x: auto;   /* horizontal only if needed */
+  overflow-y: auto;
+
   border-radius: 10px;
 }
+
 
 /* Optional: nicer scrollbars (supported browsers) */
 .row-two__table-wrap::-webkit-scrollbar{
@@ -78,9 +84,10 @@
 
 /* Table base */
 .row-two__table{
-  width: max(100%, 380px);    /* ensures horizontal scrollbar on narrow containers */
+   width: 100%;          /* 🔥 THIS is the key */
+  min-width: 100%;      /* forces stretch */
   border-collapse: separate;
-  border-spacing: 0 10px;     /* row gap like “cards” */
+  border-spacing: 0 10px;
   font-size: 14px;
   color: #0f2236;
 }
@@ -98,10 +105,15 @@
   background: #F7D7DC;            /* soft pink band like your ref */
   color: #24324a;
   font-weight: 800;
-  text-align: left;
+  text-align: center;
   padding: 12px 12px;
   border-bottom: 1px solid rgba(0,0,0,0.08);
   box-shadow: inset 0 -1px 0 rgba(0,0,0,0.05);
+}
+
+
+.row-two__table tbody [colspan] {
+  width: 100%;
 }
 
 /* First column (Type) sticky strip */
@@ -122,9 +134,11 @@
 
 /* Body row: use gaps and inner “pills” like input boxes */
 .row-two__table tbody tr td{
-  padding: 0 8px;                 /* space for the pills */
+  padding: 5px 10px;                 /* space for the pills */
   border: 0;                      /* borders handled by pill */
   background: transparent;
+  
+  
 }
 
 /* pill inside each cell (rounded input look) */
@@ -137,6 +151,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: right;
 }
 
 /* special styling for the sticky first column cells */
@@ -217,6 +232,7 @@ td.sticky-col .cell-click {
   background:
     linear-gradient(135deg, #162842 0%, #466696 60%, #4c6eb0 100%),
     radial-gradient(60% 40% at 50% 0%, rgba(86,140,255,.18), transparent 60%);
+  margin-bottom: 20px;
 }
 .panel--indigo .row-two__header h3 { color: #e8f0ff; }
 .panel--indigo .row-two__table thead th { background: #d9e6fd; color: #17253b; }
