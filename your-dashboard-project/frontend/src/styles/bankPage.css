@@ -148,7 +148,7 @@ bank-bottom-panel .bank-row-two__table-wrap::-webkit-scrollbar-track {
   color: #3a2a1f;
   font-weight: 700;
   padding: 10px 12px;
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid rgba(60,40,28,0.08);
 }
 
@@ -534,4 +534,53 @@ bank-bottom-panel .bank-row-two__table-wrap::-webkit-scrollbar-track {
   font-weight: 700;
 }
 
+/* ===== Balance Sheet Summary ===== */
 
+.bank-bs-summary {
+  display: flex;
+  gap: 20px;
+  padding: 12px 16px;
+}
+
+/* CARD */
+.bank-bs-summary-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 18px 22px;
+  border-radius: 16px;
+
+  /* 🔥 ORIGINAL PREMIUM GRADIENT (RESTORED) */
+  background: linear-gradient(
+    135deg,
+    #2a0f0f,
+    #5a2f1f,
+    #6b3a2a
+  );
+
+  color: #ffffff;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.18),
+    0 8px 18px rgba(0,0,0,0.35);
+}
+
+/* TITLE — subtle, elegant */
+.bank-bs-summary-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.4px;
+}
+
+/* AMOUNT — strong but not loud */
+.bank-bs-summary-value {
+  font-size: 28px;            /* slightly larger than before */
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.6px;
+  text-align: right;
+  white-space: nowrap;
+}
