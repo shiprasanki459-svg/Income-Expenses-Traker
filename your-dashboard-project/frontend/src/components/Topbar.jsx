@@ -30,11 +30,29 @@ export default function Topbar({
   clearFilter,
   showTopbarFilters = true,   // <-- new prop, default true
   openFiltersByDefault = false,
+  timeQS
 
 }) {
   const now = new Date();
 // open the filters panel by default only when topbar filters are enabled
   const [filtersOpen, setFiltersOpen] = useState(!!openFiltersByDefault);
+
+
+
+
+
+  React.useEffect(() => {
+  const startEl = document.getElementById("startDate");
+  const endEl = document.getElementById("endDate");
+
+  if (startEl && timeQS?.start) {
+    startEl.value = timeQS.start;
+  }
+
+  if (endEl && timeQS?.end) {
+    endEl.value = timeQS.end;
+  }
+}, [timeQS]);
 
 
   return (
@@ -107,7 +125,6 @@ export default function Topbar({
                <div className="month-year-filter">
                 <select
                   id="monthSelect"
-                  defaultValue={now.getMonth() + 1}
                   disabled={disabledFilter !== "" && disabledFilter !== "month"}
                 >
                   <option value="">Month</option>
@@ -128,7 +145,6 @@ export default function Topbar({
                 <input
                   type="number"
                   id="yearInput"
-                  defaultValue={now.getFullYear()}
                   min="2000"
                   max="2100"
                   step="1"
