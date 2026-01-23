@@ -1,5 +1,5 @@
 // src/pages/BankStatement.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import "../styles/dashboard.css";
 import "../styles/rowTwo.css";
 import "../styles/bottomPanel.css";
@@ -23,8 +23,23 @@ async function fetchJson(url, opts) {
 // 🔢 amount formatter (DISPLAY ONLY)
 const fmtAmt = (v) => {
   if (v === null || v === undefined || isNaN(v)) return "-";
-  return Math.round(v).toLocaleString("en-IN");
+
+  const num = Number(v);
+
+  // financial style for negative numbers
+  if (num < 0) {
+    return `(${Math.abs(num).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })})`;
+  }
+
+  return num.toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 };
+
 
 
 /* ----------------- Small helpers ----------------- */
@@ -59,9 +74,9 @@ function DualProductTableBank({ rows = [], onProductClick, activeProduct }) {
         <thead>
           <tr>
             <th className="sticky-head">BS Code</th>
-            <th>Amount</th>
+            <th> Liabilities </th>
             <th className="sticky-head">BS Code</th>
-            <th>Amount</th>
+            <th>Assets</th>
           </tr>
         </thead>
 
@@ -69,7 +84,7 @@ function DualProductTableBank({ rows = [], onProductClick, activeProduct }) {
           {rows.length === 0 ? (
             <tr>
               <td colSpan={4} style={{ textAlign: "center", padding: 24 }}>
-                No products to show for this time period
+                No products to show
               </td>
             </tr>
           ) : (
@@ -144,7 +159,6 @@ function DualProductTableBank({ rows = [], onProductClick, activeProduct }) {
 }
 
 function StickyStatsTableBank({ rows = [], onTypeClick, activeType }) {
-
   return (
     <div className="bank-row-two__table-wrap">
       <table className="bank-row-two__table">
@@ -152,19 +166,23 @@ function StickyStatsTableBank({ rows = [], onTypeClick, activeType }) {
         <colgroup>
           <col className="col-type" />
           <col className="col-amt" />
+          <col className="col-amt" />
         </colgroup>
+
         <thead>
           <tr>
             <th className="sticky-col sticky-head">Grouping Code</th>
-            <th>Amount</th>
+            <th>Debit</th>
+            <th>Credit</th>
           </tr>
         </thead>
+
         <tbody>
           {rows.length === 0 ? (
             <tr>
               <td
                 className="sticky-col"
-                colSpan={2}
+                colSpan={3}
                 style={{ textAlign: "center", padding: "24px" }}
               >
                 No data available for this selection / time period
@@ -188,8 +206,17 @@ function StickyStatsTableBank({ rows = [], onTypeClick, activeType }) {
                     {r.type}
                   </button>
                 </td>
+
                 <td>
-                  <div className="cell-pill cell-right">{fmtAmt(r.amount)}</div>
+                  <div className="cell-pill cell-right">
+                    {fmtAmt(r.debitAmount)}
+                  </div>
+                </td>
+
+                <td>
+                  <div className="cell-pill cell-right">
+                    {fmtAmt(r.creditAmount)}
+                  </div>
                 </td>
               </tr>
             ))
@@ -201,7 +228,6 @@ function StickyStatsTableBank({ rows = [], onTypeClick, activeType }) {
 }
 
 function StickyPartyTableBank({ rows = [], onPartyClick, activeParty }) {
-
   return (
     <div className="bank-row-two__table-wrap">
       <table className="bank-row-two__table">
@@ -209,19 +235,23 @@ function StickyPartyTableBank({ rows = [], onPartyClick, activeParty }) {
         <colgroup>
           <col className="col-type" />
           <col className="col-amt" />
+          <col className="col-amt" />
         </colgroup>
+
         <thead>
           <tr>
             <th className="sticky-col sticky-head">Name Wise</th>
-            <th>Amount</th>
+            <th>Debit</th>
+            <th>Credit</th>
           </tr>
         </thead>
+
         <tbody>
           {rows.length === 0 ? (
             <tr>
               <td
                 className="sticky-col"
-                colSpan={2}
+                colSpan={3}
                 style={{ textAlign: "center", padding: "24px" }}
               >
                 Click a Type on the left to view party-wise details
@@ -245,8 +275,17 @@ function StickyPartyTableBank({ rows = [], onPartyClick, activeParty }) {
                     {r.party}
                   </button>
                 </td>
+
                 <td>
-                  <div className="cell-pill cell-right">{fmtAmt(r.amount)}</div>
+                  <div className="cell-pill cell-right">
+                    {fmtAmt(r.debitAmount)}
+                  </div>
+                </td>
+
+                <td>
+                  <div className="cell-pill cell-right">
+                    {fmtAmt(r.creditAmount)}
+                  </div>
                 </td>
               </tr>
             ))
@@ -257,27 +296,21 @@ function StickyPartyTableBank({ rows = [], onPartyClick, activeParty }) {
   );
 }
 
- /* ===== Bottom big card: Invoice-wise list (dynamic full-row) ===== */
+/* ===== Bottom big card: Invoice-wise list (dynamic full-row) ===== */
 function StickyInvoiceTable({ columns = [], rows = [] }) {
-  // Optional: pretty display labels (capitalize). You can map to exact Sheet labels if you prefer.
+
   const label = (k) => {
-    // Map to your exact casing if you want:
     const map = {
-      "time stamp": "Time Stamp",
       "date": "Date",
-      "name": "Name",
-      "bs code": "BS Code",          // ✅ add this
-      "grouping code": "Grouping Code",
       "product name": "Product Name",
-      "bags": "Bags",
       "quantity": "Quantity",
       "qnty": "Qnty",
       "rate": "Rate",
-      "amount": "Amount",
-      "type": "Type",
+      "debitAmount": "Debit",
+      "creditAmount": "Credit",
       "remarks": "Remarks",
-      "ratio": "Ratio",
       "stock qty": "Stock Qty",
+
     };
 
     return map[k] || k;
@@ -289,7 +322,6 @@ function StickyInvoiceTable({ columns = [], rows = [] }) {
 
         <thead>
           <tr>
-            {/* optional index col */}
             <th className="sticky-col sticky-head">#</th>
             {columns.map((c) => (
               <th key={c}>{label(c)}</th>
@@ -300,7 +332,11 @@ function StickyInvoiceTable({ columns = [], rows = [] }) {
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td className="sticky-col" colSpan={columns.length + 1} style={{ textAlign: "center", padding: 24 }}>
+              <td
+                className="sticky-col"
+                colSpan={columns.length + 1}
+                style={{ textAlign: "center", padding: 24 }}
+              >
                 Click a <b>Party</b> on the right to view invoices
               </td>
             </tr>
@@ -310,10 +346,13 @@ function StickyInvoiceTable({ columns = [], rows = [] }) {
                 <td className="sticky-col">
                   <div className="cell-pill cell-type">{i + 1}</div>
                 </td>
+
                 {columns.map((c) => (
                   <td key={c}>
-                    <div className="cell-pill">
-                      {r[c] ?? ""}
+                    <div className="cell-pill cell-right">
+                      {c === "debitAmount" || c === "creditAmount"
+                        ? fmtAmt(r[c])
+                        : r[c] ?? ""}
                     </div>
                   </td>
                 ))}
@@ -325,6 +364,7 @@ function StickyInvoiceTable({ columns = [], rows = [] }) {
     </div>
   );
 }
+
 
 
 /* ================= MAIN PAGE ================= */
@@ -352,6 +392,28 @@ export default function BankStatement({ selectedView, timeQS = {} }) {
   const [invoiceRows, setInvoiceRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+
+
+  const [partySearch, setPartySearch] = useState("");
+
+  const filteredPartyRows = useMemo(() => {
+    return (partyRows || [])
+      // 🔍 Search filter
+      .filter(r => {
+        if (!partySearch) return true;
+        return (r.party || "")
+          .toLowerCase()
+          .includes(partySearch.toLowerCase());
+      })
+      // 🔠 Sort A → Z
+      .sort((a, b) =>
+        (a.party || "").localeCompare(b.party || "", "en", {
+          sensitivity: "base",
+        })
+      );
+  }, [partyRows, partySearch]);
+
+
 
   const selectedPLRef = useRef(selectedPL);
   useEffect(() => {
@@ -470,6 +532,27 @@ export default function BankStatement({ selectedView, timeQS = {} }) {
     };
   }, [selectedPL, selectedGroup, selectedProductName, timeQS]);
 
+
+  // ===== Balance Sheet Totals =====
+  const { totalLiabilities, totalAssets } = React.useMemo(() => {
+    let liabilities = 0;
+    let assets = 0;
+
+    for (const r of dualProductRows) {
+      if (r.left?.amount) {
+        liabilities += Number(r.left.amount) || 0;
+      }
+      if (r.right?.amount) {
+        assets += Number(r.right.amount) || 0;
+      }
+    }
+
+    return {
+      totalLiabilities:liabilities,
+      totalAssets: assets,
+    };
+  }, [dualProductRows]);
+
   /* ================= RENDER ================= */
 
   return (
@@ -488,9 +571,28 @@ export default function BankStatement({ selectedView, timeQS = {} }) {
         <div className="bank-product-panel__header">
           <h3>
             Balance Sheet Details{" "}
-            {selectedPL ? `—  ${selectedPL}` : ""}
+            
           </h3>
         </div>
+
+        {/* 🔹 NEW SUMMARY ROW */}
+        <div className="bank-bs-summary">
+          <div className="bank-bs-summary-card liability">
+            <div className="bank-bs-summary-title">Total Liabilities</div>
+            <div className="bank-bs-summary-value">
+              {fmtAmt(totalLiabilities)}
+            </div>
+          </div>
+
+          <div className="bank-bs-summary-card asset">
+            <div className="bank-bs-summary-title">Total Assets</div>
+            <div className="bank-bs-summary-value">
+              {fmtAmt(totalAssets)}
+            </div>
+          </div>
+        </div>
+
+        {/* 🔹 EXISTING TABLE (UNCHANGED) */}
         <div className="bank-product-panel__body">
           <DualProductTableBank
             rows={dualProductRows}
@@ -500,9 +602,9 @@ export default function BankStatement({ selectedView, timeQS = {} }) {
         </div>
       </section>
 
+
       {/* MIDDLE ROW: TYPE & PARTY */}
       <div className="bank-row-two">
-        <div className="bank-row-two__grid">
 
           <section className="bank-row-two__panel panel--indigo">
             <div className="bank-row-two__header">
@@ -523,18 +625,32 @@ export default function BankStatement({ selectedView, timeQS = {} }) {
           <section className="bank-row-two__panel panel--emerald">
             <div className="bank-row-two__header">
               <h3>
-                Party Wise Details {selectedGroup ? `— ${selectedGroup}` : ""}
+                Party Wise Details {selectedPL ? `—  ${selectedPL}` : ""} {selectedGroup ? `— ${selectedGroup}` : ""}
               </h3>
+              {/* 🔍 Party Search */}
+              <input
+                type="text"
+                placeholder="Search party..."
+                value={partySearch}
+                onChange={(e) => setPartySearch(e.target.value)}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: "6px",
+                  border: "1px solid #ccc",
+                  fontSize: "13px",
+                  minWidth: "160px",
+                }}
+              />
             </div>
             <div className="bank-row-two__body">
               <StickyPartyTableBank
-                rows={partyRows}
+                rows={filteredPartyRows}
                 onPartyClick={setSelectedProductName}
                 activeParty={selectedProductName}
               />
+
             </div>
           </section>
-        </div>
       </div>
 
       {/* BOTTOM INVOICE PANEL */}
@@ -542,6 +658,7 @@ export default function BankStatement({ selectedView, timeQS = {} }) {
         <div className="bank-bottom-panel__header">
           <h3>
             Invoice{" "}
+            {selectedPL ? `—  ${selectedPL}` : ""}
             {selectedGroup ? `— ${selectedGroup}` : ""}{" "}
             {selectedProductName ? `— ${selectedProductName}` : ""}
           </h3>

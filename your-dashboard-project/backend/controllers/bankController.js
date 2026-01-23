@@ -116,7 +116,19 @@ const filterRowsByTime = (rows, q) => {
 };
 
 
+const splitDebitCredit = (amt) => {
+  const n = toNum(amt);
+  return {
+    debitAmount: n > 0 ? n : 0,
+    creditAmount: n < 0 ? Math.abs(n) : 0,
+  };
+};
 
+const addDebitCredit = (acc, amt) => {
+  const n = toNum(amt);
+  if (n > 0) acc.debit += n;
+  else if (n < 0) acc.credit += Math.abs(n);
+};
 
 
 /* ----------------------------------------------
@@ -170,31 +182,40 @@ exports.getTypes = async (req, res) => {
   try {
     const { plCode, groupCode } = req.query;
 
-    // plCode comes from frontend as the selected Grouping Code
+    // Selected BS Code
     const groupingCode = (plCode || groupCode || "").trim();
 
     const raw = await fetchBankSheetRows();
     const rows = normalizeRows(raw);
 
-    const scoped = filterRowsByTime(rows, withDefaultMonthYear(req.query));
+    const scoped = filterRowsByTime(
+      rows,
+      withDefaultMonthYear(req.query)
+    );
 
-    // keep only rows for this Grouping Code
+    // only rows of this BS Code
     const filtered = scoped.filter(
       (r) => (r["bs code"] || "").trim() === groupingCode
     );
 
-
-    // group by PRODUCT NAME
+    /* ===== ACCOUNTING CORRECT GROUPING ===== */
     const groups = {};
+
     for (const r of filtered) {
       const key = (r["grouping code"] || "").trim();
       if (!key) continue;
-      groups[key] = (groups[key] || 0) + toNum(r["amount"]);
+
+      if (!groups[key]) {
+        groups[key] = { debit: 0, credit: 0 };
+      }
+
+      addDebitCredit(groups[key], r["amount"]);
     }
 
-    const out = Object.entries(groups).map(([type, amt]) => ({
-      type,        // shown in the "Type Wise" table
-      amount: amt,
+    const out = Object.entries(groups).map(([type, v]) => ({
+      type,
+      debitAmount: v.debit,
+      creditAmount: v.credit,
     }));
 
     res.json({ rows: out });
@@ -213,35 +234,43 @@ exports.getParties = async (req, res) => {
   try {
     const { plCode, groupCode, type } = req.query;
 
-    // From frontend:
-    //  plCode      = selected Grouping Code (top box)
-    //  groupCode   = selected Product Name (middle left)
+    // Selected BS Code & Product
     const groupingCode = (plCode || "").trim();
-    const productName = (groupCode || type || "").trim(); // support old "type" if ever used
+    const productName = (groupCode || type || "").trim();
 
     const raw = await fetchBankSheetRows();
     const rows = normalizeRows(raw);
 
-    const scoped = filterRowsByTime(rows, withDefaultMonthYear(req.query));
+    const scoped = filterRowsByTime(
+      rows,
+      withDefaultMonthYear(req.query)
+    );
 
-    // filter rows for this Grouping Code + Product Name
+    // rows for this BS Code + Product
     const filtered = scoped.filter(
       (r) =>
         (r["bs code"] || "").trim() === groupingCode &&
         (r["grouping code"] || "").trim() === productName
     );
 
-    // group by NAME (party column)
+    /* ===== ACCOUNTING CORRECT GROUPING ===== */
     const groups = {};
+
     for (const r of filtered) {
       const key = (r["name"] || "").trim();
       if (!key) continue;
-      groups[key] = (groups[key] || 0) + toNum(r["amount"]);
+
+      if (!groups[key]) {
+        groups[key] = { debit: 0, credit: 0 };
+      }
+
+      addDebitCredit(groups[key], r["amount"]);
     }
 
-    const out = Object.entries(groups).map(([party, amt]) => ({
-      party,       // shown in "Party Wise" table
-      amount: amt,
+    const out = Object.entries(groups).map(([party, v]) => ({
+      party,
+      debitAmount: v.debit,
+      creditAmount: v.credit,
     }));
 
     res.json({ rows: out });
@@ -251,6 +280,7 @@ exports.getParties = async (req, res) => {
   }
 };
 
+
 /* ----------------------------------------------
    4) INVOICES (full raw rows)
    Filter by: GROUPING CODE (C) + PRODUCT NAME (D) + NAME (E)
@@ -259,10 +289,6 @@ exports.getInvoices = async (req, res) => {
   try {
     const { plCode, groupCode, productName, type, party } = req.query;
 
-    // From frontend:
-    //  plCode        = Grouping Code (top)
-    //  groupCode     = Product Name (middle left)
-    //  productName   = Party Name (middle right)
     const groupingCode = (plCode || "").trim();
     const prodName = (groupCode || type || "").trim();
     const partyName = (productName || party || "").trim();
@@ -270,7 +296,10 @@ exports.getInvoices = async (req, res) => {
     const raw = await fetchBankSheetRows();
     const rows = normalizeRows(raw);
 
-    const scoped = filterRowsByTime(rows, withDefaultMonthYear(req.query));
+    const scoped = filterRowsByTime(
+      rows,
+      withDefaultMonthYear(req.query)
+    );
 
     const filtered = scoped.filter(
       (r) =>
@@ -279,13 +308,41 @@ exports.getInvoices = async (req, res) => {
         (r["name"] || "").trim() === partyName
     );
 
-    let columns = [];
-    if (filtered.length) {
-      columns = Object.keys(filtered[0]).filter((k) => k !== "_rowId");
-    }
+    /* ✅ EXACT COLUMNS REQUIRED BY UI */
+    const baseColumns = [
+      "date",
+      "product name",
+      "quantity",
+      "qnty",
+      "rate",
+      "remarks",
+      "stock qty",
+    ];
 
-    const out = filtered.map((r, i) => ({ _rowId: i + 1, ...r }));
-    res.json({ columns, rows: out });
+    const columns = [
+      ...baseColumns,
+      "debitAmount",
+      "creditAmount",
+    ];
+
+    const rowsOut = filtered.map((r, i) => {
+      const amt = toNum(r["amount"]);
+      const { debitAmount, creditAmount } = splitDebitCredit(amt);
+
+      const row = {};
+      for (const c of baseColumns) {
+        row[c] = r[c] ?? "";
+      }
+
+      return {
+        _rowId: i + 1,
+        ...row,
+        debitAmount,
+        creditAmount,
+      };
+    });
+
+    res.json({ columns, rows: rowsOut });
   } catch (e) {
     console.error("Error in getInvoices:", e);
     res.status(500).json({ error: "Failed to build invoice rows" });
