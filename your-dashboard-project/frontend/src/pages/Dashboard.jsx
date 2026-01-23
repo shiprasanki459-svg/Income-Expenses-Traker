@@ -211,133 +211,197 @@ function downloadStyledWorkbookFromAoA(aoa, opts = {}) {
 
 
 
+
+
 // 🔢 amount formatter (DISPLAY ONLY)
 const fmtAmt = (v) => {
   if (v === null || v === undefined || isNaN(v)) return "-";
-  return Math.round(v).toLocaleString("en-IN");
+
+  const num = Number(v);
+
+  // financial style for negative numbers
+  if (num < 0) {
+    return `(${Math.abs(num).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })})`;
+  }
+
+  return num.toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 };
+
 
 // 🔢 quantity formatter (ALLOW fractions)
 const fmtQty = (v) => {
   if (v === null || v === undefined || isNaN(v)) return "-";
-  return Number(v).toLocaleString("en-IN", {
+
+  const num = Number(v);
+
+  if (num < 0) {
+    return `(${Math.abs(num).toLocaleString("en-IN", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 4
+    })})`;
+  }
+
+  return num.toLocaleString("en-IN", {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 4   // adjust if you want more/less
+    maximumFractionDigits: 4
   });
 };
 
 
 
 
-function DualProductTable({ rows = [], onProductClick, activeProduct }) {
-  // rows is an array of { left?: productRow, right?: productRow }
-  // productRow: { product, stockQty, q1, q2, rate, amount }
-
+function SummaryRowsTable({ summaryRows, onRateChange  }) {
   return (
-    <div className="row-two__table-wrap">
-      <table className="row-two__table">
-        <colgroup>
-          {/* Left block: 6 cols */}
-          <col className="col-type" />
-          <col className="col-num" />
-          <col className="col-num" />
-          <col className="col-num" />
-          <col className="col-num" />
-          <col className="col-amt" />
-          {/* Right block: 6 cols */}
-          <col className="col-type" />
-          <col className="col-num" />
-          <col className="col-num" />
-          <col className="col-num" />
-          <col className="col-num" />
-          <col className="col-amt" />
-        </colgroup>
+    <div className="summary-table-wrap">
 
-        <thead>
-          <tr>
-            <th className="sticky-head">Product Name</th>
-            <th>Stock Qty</th>
-            <th>Quantity-1</th>
-            <th>Quantity-2</th>
-            <th>Rate</th>
-            <th>Amount</th>
+      {/* 🔒 IMPORTANT: scroll container */}
+      <div className="summary-table-scroll">
+        <table className="summary-table">
+          
+          {/* 🔒 LOCK COLUMN WIDTHS */}
+          <colgroup>
+            <col/> {/* Particular */}
+            <col/> {/* Stock Qty */}
+            <col/> {/* Quantity-1 */}
+            <col/> {/* Quantity-2 */}
+            <col/> {/* Rate */}
+            <col/> {/* Debit */}
+            <col/> {/* Credit */}
+          </colgroup>
 
-            <th className="sticky-head">Product Name</th>
-            <th>Stock Qty</th>
-            <th>Quantity-1</th>
-            <th>Quantity-2</th>
-            <th>Rate</th>
-            <th>Amount</th>
-          </tr>
-        </thead>
 
-        <tbody>
-          {rows.length === 0 ? (
+          <thead>
             <tr>
-              <td colSpan={12} style={{ textAlign: "center", padding: 24 }}>
-                No products to show
-              </td>
+              <th>Particular</th>
+              <th>Stock Qtls</th>
+              <th>Purchase Qtls</th>
+              <th>Others Qtls</th>
+              <th>Rate</th>
+              <th>Debit</th>
+              <th>Credit</th>
             </tr>
-          ) : (
-            rows.map((row, i) => (
-              <tr key={i}>
-                {/* LEFT CELL GROUP */}
-                {row.left ? (
-                  <>
-                    <td>
-                      <button
-                        type="button"
-                        className={`cell-pill cell-type cell-click ${activeProduct === row.left.product ? "is-active" : ""}`}
-                        onClick={() => onProductClick && onProductClick(row.left.product)}
-                        title="Load type-wise details"
-                      >
-                        {row.left.product}
-                      </button>
-                    </td>
-                    <td><div className="cell-pill">{fmtQty(row.left.stockQty)}</div></td>
-                    <td><div className="cell-pill">{fmtQty(row.left.q1)}</div></td>
-                    <td><div className="cell-pill">{fmtQty(row.left.q2)}</div></td>
-                    <td><div className="cell-pill">{fmtAmt(row.left.rate)}</div></td>
-                    <td><div className="cell-pill cell-right">{fmtAmt(row.left.amount)}</div></td>
+          </thead>
 
-                  </>
-                ) : (
-                  // 6 empty cells if no left
-                  Array.from({ length: 6 }).map((_, idx) => <td key={`l${idx}`} />)
-                )}
+          <tbody>
+            {summaryRows.map((r, i) => (
+              <tr
+                key={i}
+                className={[
+                  "summary-row",
+                  r.isTotal && "summary-total",
+                  r.isHighlight && "summary-highlight",
+                  r.isFinal && "summary-final",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                <td>{r.label}</td>
+                <td>{fmtQty(r.stockQty)}</td>
+                <td>{fmtQty(r.q1)}</td>
+                <td>{fmtQty(r.q2)}</td>
+                <td>
+                  {r.isEditableRate ? (
+                    <input
+                      type="number"
+                      className="rate-input"
+                      value={r.rate ?? ""}
+                      onChange={(e) => onRateChange(safeNum(e.target.value))}
 
-                {/* RIGHT CELL GROUP */}
-                {row.right ? (
-                  <>
-                    <td>
-                      <button
-                        type="button"
-                        className={`cell-pill cell-type cell-click ${activeProduct === row.right.product ? "is-active" : ""}`}
-                        onClick={() => onProductClick && onProductClick(row.right.product)}
-                        title="Load type-wise details"
-                      >
-                        {row.right.product}
-                      </button>
-                    </td>
-                    <td><div className="cell-pill">{fmtQty(row.right.stockQty)}</div></td>
-                    <td><div className="cell-pill">{fmtQty(row.right.q1)}</div></td>
-                    <td><div className="cell-pill">{fmtQty(row.right.q2)}</div></td>
-                    <td><div className="cell-pill">{fmtAmt(row.right.rate)}</div></td>
-                    <td><div className="cell-pill cell-right">{fmtAmt(row.right.amount)}</div></td>
-
-                  </>
-                ) : (
-                  // 6 empty cells if no right
-                  Array.from({ length: 6 }).map((_, idx) => <td key={`r${idx}`} />)
-                )}
+                    />
+                  ) : (
+                    fmtAmt(r.rate)
+                  )}
+                </td>
+                <td>{fmtAmt(r.debit)}</td>
+                <td>{fmtAmt(r.credit)}</td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
+
+
+
+function ProductSectionTable({ title, rows, onProductClick, activeProduct }) {
+  return (
+    <div className="pl-section" style={{ marginBottom: "24px" }}>
+      
+      {/* 🔒 Title – always visible */}
+      <h4 className="pl-title">{title}</h4>
+
+      {/* 🔒 Scroll ONLY the table */}
+      <div className="pl-table-scroll">
+        <table className="row-two__table">
+          <colgroup>
+            <col className="col-type" />
+            <col className="col-num" />
+            <col className="col-num" />
+            <col className="col-num" />
+            <col className="col-num" />
+            <col className="col-amt" />
+            <col className="col-amt" />
+          </colgroup>
+
+          <thead>
+            <tr>
+              <th className="sticky-head">Particulars</th>
+              <th>Stock Qtls</th>
+              <th>Purchase Qtls</th>
+              <th>Others Qtls</th>
+              <th>Rate</th>
+              <th>Debit</th>
+              <th>Credit</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={7} style={{ textAlign: "center", padding: 24 }}>
+                  No products to show
+                </td>
+              </tr>
+            ) : (
+              rows.map((r, i) => (
+                <tr key={r.product + i}>
+                  <td>
+                    <button
+                      type="button"
+                      className={`cell-pill cell-type cell-click ${
+                        activeProduct === r.product ? "is-active" : ""
+                      }`}
+                      onClick={() => onProductClick(r.product)}
+                    >
+                      {r.product}
+                    </button>
+                  </td>
+
+                  <td><div className="cell-pill">{fmtQty(r.stockQty)}</div></td>
+                  <td><div className="cell-pill">{fmtQty(r.q1)}</div></td>
+                  <td><div className="cell-pill">{fmtQty(r.q2)}</div></td>
+                  <td><div className="cell-pill">{fmtAmt(r.rate)}</div></td>
+                  <td><div className="cell-pill cell-right">{fmtAmt(r.debitAmount)}</div></td>
+                  <td><div className="cell-pill cell-right">{fmtAmt(r.creditAmount)}</div></td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+
 
 /* ===== Sticky table for Row Two (Left) ===== */
 function StickyStatsTable({ rows = [], onTypeClick, activeType }) {
@@ -357,18 +421,19 @@ function StickyStatsTable({ rows = [], onTypeClick, activeType }) {
         <thead>
           <tr>
             <th className="sticky-col sticky-head">Type</th>
-            <th>Stock Qty</th>
-            <th>Quantity-1</th>
-            <th>Quantity-2</th>
+            <th>Stock Qtls</th>
+            <th>Purchase Qtls</th>
+            <th>Others Qtls</th>
             <th>Rate</th>
-            <th>Amount</th>
+            <th>Debit</th>      
+            <th>Credit</th>
           </tr>
         </thead>
 
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td className="sticky-col" colSpan={6} style={{ textAlign: "center", padding: "24px" }}>
+              <td className="sticky-col" colSpan={7} style={{ textAlign: "center", padding: "24px" }}>
                 No data available for this selection / time period
               </td>
             </tr>
@@ -392,7 +457,9 @@ function StickyStatsTable({ rows = [], onTypeClick, activeType }) {
                 <td><div className="cell-pill">{fmtQty(r.q1)}</div></td>
                 <td><div className="cell-pill">{fmtQty(r.q2)}</div></td>
                 <td><div className="cell-pill">{fmtAmt(r.rate)}</div></td>
-                <td><div className="cell-pill cell-right">{fmtAmt(r.amount)}</div></td>
+                <td><div className="cell-pill cell-right">{fmtAmt(r.debitAmount)}</div></td>
+                <td><div className="cell-pill cell-right">{fmtAmt(r.creditAmount)}</div></td>
+
               </tr>
 
             ))
@@ -420,18 +487,19 @@ function StickyPartyTable({ rows = [], onPartyClick, activeParty }) {
         <thead>
           <tr>
             <th className="sticky-col sticky-head">Party Wise</th>
-            <th>Stock Qty</th>
-            <th>Quantity-1</th>
-            <th>Quantity-2</th>
+            <th>Stock Qtls</th>
+            <th>Purchase Qtls</th>
+            <th>Others Qtls</th>
             <th>Rate</th>
-            <th>Amount</th>
+            <th>Debit</th>
+            <th>Credit</th>
           </tr>
         </thead>
 
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td className="sticky-col" colSpan={6} style={{ textAlign: "center", padding: "24px" }}>
+              <td className="sticky-col" colSpan={7} style={{ textAlign: "center", padding: "24px" }}>
                 {`Click a Type on the left to view party-wise details`}
               </td>
             </tr>
@@ -456,7 +524,8 @@ function StickyPartyTable({ rows = [], onPartyClick, activeParty }) {
                 <td><div className="cell-pill">{fmtQty(r.q1)}</div></td>
                 <td><div className="cell-pill">{fmtQty(r.q2)}</div></td>
                 <td><div className="cell-pill">{fmtAmt(r.rate)}</div></td>
-                <td><div className="cell-pill cell-right">{fmtAmt(r.amount)}</div></td>
+                <td><div className="cell-pill cell-right">{fmtAmt(r.debitAmount)}</div></td>
+                <td><div className="cell-pill cell-right">{fmtAmt(r.creditAmount)}</div></td>
               </tr>
             ))
           )}
@@ -476,18 +545,17 @@ function StickyInvoiceTable({ columns = [], rows = [] }) {
       "time stamp": "Time Stamp",
       "date": "Date",
       "name": "Name",
-      "pl code": "PL Code",
-      "grouping code": "Grouping Code",
-      "product name": "Product Name",
       "bags": "Bags",
-      "quantity": "Quantity",
-      "qnty": "Qnty",
+      "quantity": "Purchase Qtls",
+      "qnty": "Others Qtls",
       "rate": "Rate",
-      "amount": "Amount",
+      "debitAmount": "Debit Amount",
+      "creditAmount": "Credit Amount",
       "type": "Type",
       "remarks": "Remarks",
       "ratio": "Ratio",
-      "stock qty": "Stock Qty",
+      "stock qty": "Stock Qtls"
+
     };
 
     return map[k] || k;
@@ -558,6 +626,7 @@ useEffect(() => {
 // When Grouping Code changes => clear selectedProductName
 useEffect(() => {
   setSelectedProductName(null);
+  setPartySearch(""); // reset search on group change
 }, [selectedGroup]);
 
 
@@ -571,96 +640,60 @@ const [invoiceCols, setInvoiceCols] = useState([]); // << new
 const [invoiceRows, setInvoiceRows] = useState([]);         // invoices
 const [loading, setLoading] = useState(false);
 const [err, setErr] = useState("");
+const [partySearch, setPartySearch] = useState("");
 
-// Opening / Closing balance state
-const [openingData, setOpeningData] = useState({
-  stockQty: 0,
-  rate: 0,
-});
-const [openingRate, setOpeningRate] = useState(null); // editable input (defaults from sheet)
-const [closingRate, setClosingRate] = useState(null); // editable input (defaults from opening rate)
-
-const [nagdiAmount, setNagdiAmount] = useState(0);    // Nagdi Tutra total (from backend)
+const [summaryBase, setSummaryBase] = useState(null);
 
 
+const handleOpeningRateChange = (newRate) => {
+  setSummaryBase(prev => {
+    if (!prev) return prev;
 
+    const opening = {
+      ...prev.opening,
+      rate: newRate,
+      debit: 0,
+      credit: safeNum(prev.opening.q2) * newRate
+    };
 
-// KPI totals: based on product details (dualProductRows)
-const kpiTotals = useMemo(() => {
-  let negStock = 0, negAmt = 0; // Left side (Amount < 0)
-  let posStock = 0, posAmt = 0; // Right side (Amount > 0)
+    const closingStockQty =
+      prev.revenue.stockQty - prev.purchase.stockQty - prev.opening.q2;
 
-  dualProductRows.forEach(pair => {
-    const sides = [pair.left, pair.right];
-    sides.forEach(p => {
-      if (!p) return;
-      const amt = safeNum(p.amount);
-      const stock = safeNum(p.stockQty);
+    const closing = {
+      ...prev.closing,
+      rate: newRate,
+      debit: safeNum(closingStockQty) * newRate,
+      credit: 0
+    };
 
-      if (amt < 0) {
-        negAmt += amt;
-        negStock += stock;
-      } else if (amt > 0) {
-        posAmt += amt;
-        posStock += stock;
-      }
-      // amt === 0 is ignored for both sides
-    });
+    return {
+      ...prev,
+      opening,
+      closing
+    };
   });
-
-  return {
-    leftStockQty: negStock,
-    leftAmount: negAmt,
-    rightStockQty: posStock,
-    rightAmount: posAmt,
-  };
-}, [dualProductRows]);
-
-// simple formatter for KPI numbers
-const fmtKpi = (v) => {
-  if (!v) return "-"; // show "-" when 0 / null
-  return Number(v).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 };
 
 
-// Opening Amount = Opening Stock * Opening Rate (rate is editable)
-const openingAmount = useMemo(() => {
-  const stock = safeNum(openingData.stockQty);
-  const rate = safeNum(
-    openingRate !== null && openingRate !== undefined
-      ? openingRate
-      : openingData.rate
-  );
-  return stock * rate;
-}, [openingData.stockQty, openingData.rate, openingRate]);
 
-// Closing Stock = Right Stock - Left Stock - Opening Stock
-const closingStockQty = useMemo(() => {
-  const right = safeNum(kpiTotals.rightStockQty);
-  const left = safeNum(kpiTotals.leftStockQty);
-  const openingStock = safeNum(openingData.stockQty);
-  return right - left - openingStock;
-}, [kpiTotals.rightStockQty, kpiTotals.leftStockQty, openingData.stockQty]);
-
-// Closing Amount = Closing Stock * Closing Rate (editable, default = openingRate)
-const closingAmount = useMemo(() => {
-  const stock = safeNum(closingStockQty);
-  const rate = safeNum(
-    closingRate !== null && closingRate !== undefined
-      ? closingRate
-      : (openingRate !== null && openingRate !== undefined
-          ? openingRate
-          : openingData.rate)
-  );
-  return stock * rate;
-}, [closingStockQty, closingRate, openingRate, openingData.rate]);
+const filteredPartyRows = useMemo(() => {
+  return (partyRows || [])
+    // 🔍 filter by search text
+    .filter(r => {
+      if (!partySearch) return true;
+      return (r.party || "")
+        .toLowerCase()
+        .includes(partySearch.toLowerCase());
+    })
+    // 🔠 sort A → Z
+    .sort((a, b) =>
+      (a.party || "").localeCompare(b.party || "", "en", { sensitivity: "base" })
+    );
+}, [partyRows, partySearch]);
 
 
-// P & L for the period = (Closing Amount + Nagdi Tutra Amount) - Opening Amount
-const plAmount = useMemo(() => {
-  const nagdi = safeNum(nagdiAmount);
-  return closingAmount + nagdi - openingAmount;
-}, [closingAmount, nagdiAmount, openingAmount]);
+
+
 
 
 // Build a URL with the global time filter + any extra params
@@ -683,6 +716,9 @@ useEffect(() => { selectedPLRef.current = selectedPL; }, [selectedPL]);
 
 
 
+
+
+
 // 1) Load top product pairs on mount
 useEffect(() => {
   let alive = true;
@@ -691,70 +727,30 @@ useEffect(() => {
   fetch(withQS(`/api/product-summary`))
     .then(r => r.json())
     .then(j => {
-      if (!alive) return;
-      const rows = j.rows || [];
-      setDualProductRows(rows);
+        if (!alive) return;
 
-      // check current selection using ref to avoid dependency loop
-      const currentSel = selectedPLRef.current;
-      if (currentSel) {
-        const allPls = rows.flatMap(p => [p.left && p.left.product, p.right && p.right.product].filter(Boolean));
-        if (!allPls.includes(currentSel)) {
-          setSelectedPL(null);
+        // ✅ product rows
+        setDualProductRows(j.rows || []);
+
+
+        const rows = j.rows || [];
+        const currentSel = selectedPLRef.current;
+        if (currentSel) {
+          const allPls = rows.flatMap(p =>
+            [p.left && p.left.product, p.right && p.right.product].filter(Boolean)
+          );
+          if (!allPls.includes(currentSel)) {
+            setSelectedPL(null);
+          }
         }
-      }
-    })
+      })
+
     .catch(e => setErr(String(e)))
     .finally(() => alive && setLoading(false));
 
   return () => { alive = false; };
 }, [timeQS]); // <-- only timeQS
 
-
-
-// 1b) Load Opening Balance (from PL Code 'Opening Balance')
-useEffect(() => {
-  let alive = true;
-
-  fetch(withQS(`/api/opening-balance`))
-    .then(r => r.json())
-    .then(j => {
-      if (!alive) return;
-      const stock = safeNum(j.stockQty);
-      const rate = safeNum(j.rate);
-
-      setOpeningData({ stockQty: stock, rate });
-
-      // set default editable rates
-      setOpeningRate(rate);
-      setClosingRate(rate);
-    })
-    .catch(e => {
-      console.error("Failed to load opening balance", e);
-      // don't break UI, just log + keep previous
-    });
-
-  return () => { alive = false; };
-}, [timeQS]);
-
-
-
-// 👇 NEW: 1c) Load Nagdi Tutra amount (PL Code 'Nagdi Tutra')
-useEffect(() => {
-  let alive = true;
-
-  fetch(withQS(`/api/nagdi-tutra`))
-    .then(r => r.json())
-    .then(j => {
-      if (!alive) return;
-      setNagdiAmount(safeNum(j.amount || 0));
-    })
-    .catch(e => {
-      console.error("Failed to load Nagdi Tutra amount", e);
-    });
-
-  return () => { alive = false; };
-}, [timeQS]);
 
 
 // 2) When a product is selected, load type-wise rows
@@ -813,6 +809,16 @@ useEffect(() => {
   return () => { alive = false; };
 }, [selectedPL, selectedGroup, selectedProductName, timeQS]);
 
+
+
+useEffect(() => {
+  fetch(withQS(`${API}/api/pl-summary`))
+    .then(r => r.json())
+    .then(j => {
+      setSummaryBase(j.summaryBase || null);
+    })
+    .catch(console.error);
+}, [timeQS]);
 
 
 
@@ -967,6 +973,122 @@ const exportInvoices = (columns, rows) => {
 
 
 
+
+const leftRows = dualProductRows
+  .map(r => r.left)
+  .filter(Boolean);
+
+const rightRows = dualProductRows
+  .map(r => r.right)
+  .filter(Boolean);
+
+
+  const unifiedRows = useMemo(() => {
+  return [
+    ...leftRows.map(r => ({ ...r, side: "Left" })),
+    ...rightRows.map(r => ({ ...r, side: "Right" }))
+  ];
+}, [leftRows, rightRows]);
+
+
+const computedSummaryRows = useMemo(() => {
+  if (!summaryBase) return [];
+
+  const {
+    opening,
+    revenue,
+    purchase,
+    otherIncome,
+    variableCost,
+    fixedCost
+  } = summaryBase;
+
+  // 🔹 Closing Balance
+  const closing = {
+    label: "Closing Balance",
+    stockQty: revenue.stockQty - purchase.stockQty - opening.q2,
+    q1: revenue.q1 - purchase.q1 - opening.q1,
+    q2: revenue.q2 - purchase.q2 - opening.q2,
+    rate: opening.rate,
+    debit: safeNum(revenue.stockQty - purchase.stockQty - opening.q2) * opening.rate,
+    credit: 0,
+    isEditableRate: true
+  };
+
+  // 🔹 Total (Revenue + Closing)
+  const total = {
+    label: "Total (Revenue from Ops + Closing Stock)",
+    stockQty: revenue.stockQty + closing.stockQty,
+    q1: revenue.q1 + closing.q1,
+    q2: revenue.q2 + closing.q2,
+    debit: revenue.debit + closing.debit,
+    credit: revenue.credit,
+    isTotal: true
+  };
+
+  // 🔹 Gross Profit
+  const grossProfit = {
+    label: "Gross Profit",
+    stockQty: total.stockQty - opening.stockQty - purchase.stockQty,
+    q1: total.q1 - opening.q1 - purchase.q1,
+    q2: total.q2 - opening.q2 - purchase.q2,
+    debit: total.debit - purchase.debit,
+    credit: total.credit - opening.credit - purchase.credit,
+    isHighlight: true
+  };
+
+  // 🔹 Total (GP + Other Income)
+  const totalAfterGP = {
+    label: "Total (G.P + Other Income)",
+    stockQty: grossProfit.stockQty + otherIncome.stockQty,
+    q1: grossProfit.q1 + otherIncome.q1,
+    q2: grossProfit.q2 + otherIncome.q2,
+    debit: grossProfit.debit + otherIncome.debit,
+    credit: grossProfit.credit + otherIncome.credit,
+    isTotal: true
+  };
+
+  // 🔹 Profit after Variable Cost
+  const profitAfterVC = {
+    label: "Profit after Variable Cost",
+    stockQty: totalAfterGP.stockQty - variableCost.stockQty,
+    q1: totalAfterGP.q1 - variableCost.q1,
+    q2: totalAfterGP.q2 - variableCost.q2,
+    debit: totalAfterGP.debit - variableCost.debit,
+    credit: totalAfterGP.credit - variableCost.credit,
+    isHighlight: true
+  };
+
+  // 🔹 Net Profit
+  const netProfit = {
+    label: "Net Profit",
+    stockQty: profitAfterVC.stockQty - fixedCost.stockQty,
+    q1: profitAfterVC.q1 - fixedCost.q1,
+    q2: profitAfterVC.q2 - fixedCost.q2,
+    debit: profitAfterVC.debit - fixedCost.debit,
+    credit: profitAfterVC.credit - fixedCost.credit,
+    isFinal: true
+  };
+
+  return [
+    { label: "Opening Balance", ...opening },
+    closing,
+    total,
+    grossProfit,
+    totalAfterGP,
+    { label: "Variable Cost", ...variableCost },
+    profitAfterVC,
+    { label: "Fixed Cost", ...fixedCost },
+    netProfit
+  ];
+}, [summaryBase]);
+
+
+
+
+
+
+
  
 return (
  <div className="page">    
@@ -975,172 +1097,13 @@ return (
     {err && <div className="card" style={{padding:12, color:"#f66"}}>Error: {err}</div>}
     {loading && <div className="card" style={{padding:12}}>Loading…</div>}
         
-    {/* ---------- New KPI panel (placed above Product Details) ---------- */}
-    <section className="kpi-panel" aria-label="Top KPI panel">
-      <div className="kpi-panel__inner">
-
-        {/* big header inside the white card */}
-        <div className="kpi-panel__title">
-          <h2>KPI Section</h2>
-        </div>
-
-        {/* top large box (blue/indigo -> teal) - Summation Area */}
-          <div className="kpi-row kpi-box__meta">
-            {/* two columns (left / right) with two metrics each */}
-            <div className="summation-columns">
-              <div className="summation-column" aria-label="Left summary">
-                <div className="summation-col-title">Left Side</div>
-                <div className="summation-metrics">
-                  <div className="summation-metric">
-                    <div className="metric-label">Stock Qty</div>
-                    <div className="metric-value">{fmtKpi(kpiTotals.leftStockQty)}</div>
-                  </div>
-                  <div className="summation-metric">
-                    <div className="metric-label">Amount</div>
-                    <div className="metric-value">{fmtKpi(kpiTotals.leftAmount)}</div>
-                  </div>
-                </div>
-              </div>
-
-
-              <div className="summation-column" aria-label="Right summary">
-                <div className="summation-col-title">Right Side</div>
-                <div className="summation-metrics">
-                  <div className="summation-metric">
-                    <div className="metric-label">Stock Qty</div>
-                    <div className="metric-value">{fmtKpi(kpiTotals.rightStockQty)}</div>
-                  </div>
-                  <div className="summation-metric">
-                    <div className="metric-label">Amount</div>
-                    <div className="metric-value">{fmtKpi(kpiTotals.rightAmount)}</div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-          
-
-        {/* middle box showing one-row Opening / Closing balances */}
-          <div className="kpi-row balances-row">
-              {/* Opening Balance (left) */}
-              <div className="balance-group balance-group--opening" aria-label="Opening panel">
-                <div className="balance-heading">Opening Balance</div>
-
-                <table className="balance-table" aria-label="Opening balance">
-                  <thead>
-                    <tr>
-                      <th>Stock Qty</th>
-                      <th>Rate</th>
-                      <th>Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      {/* Stock Qty from sheet (not editable) */}
-                      <td className="val pill">
-                        {fmtKpi(openingData.stockQty)}
-                      </td>
-
-                      {/* Rate: default from sheet, but editable by user */}
-                      <td className="val pill">
-                        <input
-                          type="number"
-                          className="kpi-input"
-                          value={openingRate ?? ""}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            setOpeningRate(v === "" ? null : Number(v));
-                          }}
-                        />
-                      </td>
-
-                      {/* Amount = Stock Qty * Rate */}
-                      <td className="val pill">
-                        {fmtKpi(openingAmount)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="balance-spacer" aria-hidden="true" />
-
-              {/* Closing Balance (right) */}
-              <div className="balance-group balance-group--closing" aria-label="Closing panel">
-                <div className="balance-heading">Closing Balance</div>
-
-                <table className="balance-table" aria-label="Closing balance">
-                  <thead>
-                    <tr>
-                      <th>Stock Qty</th>
-                      <th>Rate</th>
-                      <th>Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      {/* Closing Stock Qty = Right Stock - Left Stock - Opening Stock */}
-                      <td className="val pill">
-                        {fmtKpi(closingStockQty)}
-                      </td>
-
-                      {/* Rate: defaults from Opening Rate, editable separately */}
-                      <td className="val pill">
-                        <input
-                          type="number"
-                          className="kpi-input"
-                          value={closingRate ?? ""}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            setClosingRate(v === "" ? null : Number(v));
-                          }}
-                        />
-                      </td>
-
-                      {/* Amount = Closing Stock * Closing Rate */}
-                      <td className="val pill">
-                        {fmtKpi(closingAmount)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-
-              </div>
-          </div>
-
-        {/* bottom row with two smaller boxes (muted) */}
-        <div className="kpi-bottom-row">
-          <div className="kpi-box kpi-box--small kpi-box--muted">
-            <div className="mini-info">
-              <div className="mini-info__label">P &amp; L for the period</div>
-              <div className="mini-info__amount">
-                <div className="mini-info__amount-title">Amount</div>
-                <div className="mini-info__amount-value">{fmtKpi(plAmount)}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="kpi-box kpi-box--small kpi-box--muted">
-            <div className="mini-info">
-              <div className="mini-info__label">Nagdi Tutra</div>
-              <div className="mini-info__amount">
-                <div className="mini-info__amount-title">Amount</div>
-                <div className="mini-info__amount-value">{fmtKpi(nagdiAmount)}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
 
 
 
     <section className="product-panel panel--violet">
       <div className="product-panel__header">
         <h3>
-          Product Details {selectedPL ? `—  ${selectedPL}` : ""}
+          Product Details 
         </h3>
         <button
             className="export-btn"
@@ -1169,108 +1132,123 @@ return (
           </button>
       </div>
       <div className="product-panel__body">
-        <DualProductTable
-          rows={dualProductRows}
+        <SummaryRowsTable
+          summaryRows={computedSummaryRows}
+          onRateChange={handleOpeningRateChange}
+        />
+
+
+
+        <ProductSectionTable
+          title="P & L Details"
+          rows={unifiedRows}
           onProductClick={setSelectedPL}
           activeProduct={selectedPL}
         />
+
+
       </div>
     </section>
 
 
-    {/* <KpiBar title={view} data={kpiValues} /> */}
+    {/* === Row Two (VERTICAL STACK) === */}
 
-    {/* === Two soft panels under KPI (Row Two) === */}
-    <div className="row-two">
-      <div className="row-two__grid">
+      {/* TYPE WISE */}
+      <section className="row-two__panel panel--indigo">
+        <div className="row-two__header">
+          <h3>Type Wise Details {selectedPL ? `— ${selectedPL}` : ""}</h3>
 
+          <button
+            className="export-btn"
+            onClick={() => exportTypes(tableRows)}
+            title="Export Type-wise to Excel"
+          >
+            <span className="export-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
+                <path d="M4 21h16" />
+              </svg>
+            </span>
+            <span>Export</span>
+          </button>
+        </div>
 
-
-        <section className="row-two__panel panel--indigo">
-          <div className="row-two__header">
-            <h3>Type Wise Details {selectedPL ? `— ${selectedPL}` : ""}</h3>
-
-            <button
-              className="export-btn"
-              onClick={() => exportTypes(tableRows)}
-              title="Export Type-wise to Excel"
-              aria-label="Export Type-wise"
-            >
-              <span className="export-icon" aria-hidden="true">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  width="18"
-                  height="18"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
-                  <path d="M4 21h16" />
-                </svg>
-              </span>
-              <span>Export</span>
-            </button>
-          </div>
-          <div className="row-two__body">
-              <StickyStatsTable
-                rows={tableRows}
-                onTypeClick={setSelectedGroup}
-                activeType={selectedGroup}
-              />
-          </div>
-        </section>
-
-        <section className="row-two__panel panel--emerald">
-          <div className="row-two__header">
-            <h3>Party Wise Details {selectedGroup ? `— ${selectedGroup}` : ""}</h3>
-            <button
-              className="export-btn"
-              onClick={() => exportParties(partyRows)}
-              title="Export Party-wise to Excel"
-              aria-label="Export Party-wise"
-            >
-              <span className="export-icon" aria-hidden="true">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  width="18"
-                  height="18"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
-                  <path d="M4 21h16" />
-                </svg>
-              </span>
-              <span>Export</span>
-            </button>
-          </div>
-          <div className="row-two__body">
-            <StickyPartyTable
-              rows={partyRows}
-              onPartyClick={setSelectedProductName}
-              activeParty={selectedProductName}
-            />
-          </div>
-        </section>
+        <div className="row-two__body">
+          <StickyStatsTable
+            rows={tableRows}
+            onTypeClick={setSelectedGroup}
+            activeType={selectedGroup}
+          />
+        </div>
+      </section>
 
 
+      {/* PARTY WISE */}
+      <section className="row-two__panel panel--emerald">
+      <div className="row-two__header">
+        <h3>
+          Party Wise Details
+          {selectedPL ? ` — ${selectedPL}` : ""}
+          {selectedGroup ? ` — ${selectedGroup}` : ""}
+        </h3>
+
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          {/* 🔍 Party Search */}
+          <input
+            type="text"
+            placeholder="Search party..."
+            value={partySearch}
+            onChange={(e) => setPartySearch(e.target.value)}
+            style={{
+              padding: "6px 10px",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+              fontSize: "13px"
+            }}
+          />
+
+          {/* Export button (unchanged) */}
+          <button
+            className="export-btn"
+            onClick={() => exportParties(filteredPartyRows)}
+            title="Export Party-wise to Excel"
+          >
+            <span className="export-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
+                <path d="M4 21h16" />
+              </svg>
+            </span>
+            <span>Export</span>
+          </button>
+        </div>
       </div>
-    </div>
+   
+
+        <div className="row-two__body">
+          <StickyPartyTable
+            rows={filteredPartyRows}
+            onPartyClick={setSelectedProductName}
+            activeParty={selectedProductName}
+          />
+
+        </div>
+      </section>
+
     {/* === /Row Two === */}
+
+          
+
+
+
+      
+    
 
     {/* === Full width large panel (Bottom Panel) === */}
     <section className="bottom-panel panel--rose">
       <div className="bottom-panel__header">
         <h3>
-          Invoices {selectedGroup ? `— ${selectedGroup}` : ""} {selectedProductName ? `— ${selectedProductName}` : ""}
+          Details  {selectedPL ? `— ${selectedPL}` : ""} {selectedGroup ? `— ${selectedGroup}` : ""} {selectedProductName ? `— ${selectedProductName}` : ""}
         </h3>
         <button
           className="export-btn"

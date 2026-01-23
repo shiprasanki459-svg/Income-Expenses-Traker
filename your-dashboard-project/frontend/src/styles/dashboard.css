@@ -127,7 +127,7 @@
   color: #1e2138;
   font-weight: 800;
   padding: 10px;
-  text-align: left;
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -220,6 +220,109 @@
 .export-btn:hover .export-icon svg {
   stroke: #ffffff;
   transform: translateY(-2px);
+}
+
+
+
+.pl-title {
+  margin-top: 25px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #2e1f47;
+}
+
+/* ONLY table scrolls */
+.pl-table-scroll {
+  max-height: 420px;
+  overflow-y: auto;
+  overflow-x: auto;
+  border-radius: 10px;
+}
+
+
+
+/* Product name pill – uniform width */
+.pl-table-scroll .cell-type {
+  width: 100%;
+  max-width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+
+/* Make each P&L row look like one unified card */
+.pl-section .row-two__table tbody tr {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Apply unified card only to non-sticky cells */
+.pl-section .row-two__table tbody td:not(:first-child) {
+  background: linear-gradient(
+    180deg,
+   
+    #b4c1e3
+  );
+  box-shadow:
+    0 6px 14px rgba(80, 60, 120, 0.12),
+    inset 0 1px 0 rgba(255,255,255,0.8);
+}
+
+/* Sticky Product Name column – always clean */
+.pl-section .row-two__table td:first-child {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Card starts from Stock Qty */
+.pl-section .row-two__table td:nth-child(2) {
+  border-top-left-radius: 14px;
+  border-bottom-left-radius: 14px;
+}
+
+/* Card ends at last column */
+.pl-section .row-two__table td:last-child {
+  border-top-right-radius: 14px;
+  border-bottom-right-radius: 14px;
+}
+
+.pl-section .row-two__table tbody tr:hover td:not(:first-child) {
+  box-shadow:
+    0 10px 24px rgba(90, 70, 140, 0.22);
+}
+
+
+/* Remove cell separation */
+.pl-section .row-two__table {
+  border-collapse: separate;
+  border-spacing: 0 12px; /* vertical spacing between rows */
+}
+
+
+.pl-section .row-two__table td {
+  background: transparent;
+}
+
+/* Left rounded edge after sticky column */
+.pl-section .row-two__table td:nth-child(2) {
+  border-top-left-radius: 14px;
+  border-bottom-left-radius: 14px;
+}
+
+/* Right rounded edge */
+.pl-section .row-two__table td:last-child {
+  border-top-right-radius: 14px;
+  border-bottom-right-radius: 14px;
+}
+.pl-section .row-two__table tbody tr:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 10px 24px rgba(90, 70, 140, 0.22);
 }
 
 

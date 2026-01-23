@@ -42,6 +42,12 @@ const weightedAvgRate = (arr, rateKey, qtyKey) => {
   return qtySum ? (weightedSum / qtySum) : 0;
 };
 
+const calcRate = (row) => {
+  const qty = toNum(row.q2);
+  if (qty === 0) return 0;
+  return round2((toNum(row.credit) - toNum(row.debit)) / qty);
+};
+
 
 
 const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
@@ -57,33 +63,38 @@ const groupBy = (arr, key) =>
 // Quantity mapping per your rule:
 //  - Quantity-1  -> from column "Qnty"  (normalized => "qnty")
 //  - Quantity-2  -> from column "Quantity" (normalized => "quantity")
-const asAggRow = (base, list) => ({
-  ...base,
+const asAggRow = (base, list) => {
+  const debitAmount = round2(
+    Math.abs(
+      sumBy(list.filter(r => toNum(r["amount"]) < 0), "amount")
+    )
+  );
 
-  // ✅ keep full fractional value
-  stockQty: sumBy(list, "stock qty"),
-  q1:       sumBy(list, "quantity"),
-  q2:       sumBy(list, "qnty"),
+  const creditAmount = round2(
+    sumBy(list.filter(r => toNum(r["amount"]) > 0), "amount")
+  );
 
-  // ✅ rate must stay rounded
-  rate: Number(
-    weightedAvgRate(list, "rate", "stock qty")
-  ).toFixed(2),
+  return {
+    ...base,
 
-  // ✅ amount must stay rounded
-  amount: round2(sumBy(list, "amount")),
-});
+    stockQty: sumBy(list, "stock qty"),
+    q1:       sumBy(list, "quantity"),
+    q2:       sumBy(list, "qnty"),
+
+    rate: Number(
+      weightedAvgRate(list, "rate", "stock qty")
+    ).toFixed(2),
+
+    debitAmount,
+    creditAmount,
+  };
+};
 
 
 // If no time query is provided, default to current month/year (1..12)
 function withDefaultMonthYear(q = {}) {
-  // 🔥 if date range is present, NEVER inject month/year
-  if (q.start || q.end) return q;
-
-  if (q.month || q.year) return q;
-
-  const t = new Date();
-  return { ...q, month: t.getMonth() + 1, year: t.getFullYear() };
+  // If frontend sends nothing, we respect it
+  return q;
 }
 
 
@@ -250,9 +261,43 @@ const blankAgg = (name) => ({
   q1: null,
   q2: null,
   rate: null,
-  amount: null,
+  debitAmount: null,
+  creditAmount: null,
 });
 
+
+
+// 🔒 Identify Opening Stock / Opening Balance rows
+const isOpeningStockRow = (r) => {
+  const pl = (r["pl code"] || "").toString().trim().toLowerCase();
+  const grp = (r["grouping code"] || "").toString().trim().toLowerCase();
+
+  return (
+    pl === "opening stock" ||
+    pl === "opening balance" ||
+    grp === "opening stock" ||
+    grp === "opening balance"
+  );
+};
+
+
+// KPI-safe stock sum (ignores sign, shows absolute movement)
+const sumAbsBy = (arr, key) =>
+  arr.reduce((t, r) => t + Math.abs(toNum(r[key])), 0);
+
+
+
+
+const splitDebitCredit = (amt) => {
+  const n = round2(toNum(amt));
+  if (n < 0) {
+    return { debitAmount: Math.abs(n), creditAmount: 0 };
+  }
+  if (n > 0) {
+    return { debitAmount: 0, creditAmount: n };
+  }
+  return { debitAmount: 0, creditAmount: 0 };
+};
 
 /* ---------- Controllers ---------- */
 
@@ -272,7 +317,7 @@ exports.getProductSummary = async (req, res) => {
    const scoped = filterRowsByTime(
       rows,
       withDefaultMonthYear({ ...req.query })
-    );
+    ).filter(r => !isOpeningStockRow(r));
 
     debugLogSample("scoped after time filter", scoped, 1);
 
@@ -291,12 +336,23 @@ exports.getProductSummary = async (req, res) => {
     const negativeRows = scoped.filter(r => toNum(r["amount"]) < 0);
     const positiveRows = scoped.filter(r => toNum(r["amount"]) > 0);
 
+    const totalDebit  = round2(
+      Math.abs(sumBy(negativeRows, "amount"))
+    );
+
+    const totalCredit = round2(
+      sumBy(positiveRows, "amount")
+    );
+
     const kpiTotals = {
-      leftStockQty:  round2(sumBy(negativeRows, "stock qty")),
-      leftAmount:    round2(sumBy(negativeRows, "amount")),
-      rightStockQty: round2(sumBy(positiveRows, "stock qty")),
-      rightAmount:   round2(sumBy(positiveRows, "amount")),
+      leftStockQty:  round2(sumAbsBy(negativeRows, "stock qty")),
+      rightStockQty: round2(sumAbsBy(positiveRows, "stock qty")),
+
+      debitAmount:  totalDebit,
+      creditAmount: totalCredit,
     };
+
+
 
 
     // --- dynamically classify PL Codes by aggregated amount (negative => left, positive/zero => right)
@@ -312,7 +368,10 @@ const neutral = []; // amounts === 0
 
 for (const pl of allPlCodes) {
   const agg = aggMap[pl];
-  const amt = toNum(agg.amount);
+  const amt = toNum(
+    (agg.creditAmount || 0) - (agg.debitAmount || 0)
+  );
+
   if (amt < 0) leftFull.push(agg);
   else if (amt > 0) rightFull.push(agg);
   else neutral.push(agg);
@@ -328,7 +387,6 @@ const pairs = Array.from({ length: max }).map((_, i) => ({ left: leftFull[i] || 
     debugLogSample("product-summary pairs (first)", pairs, 1);
     res.json({
       rows: pairs,
-      kpiTotals,
     });
 
   } catch (e) {
@@ -444,20 +502,41 @@ exports.getInvoices = async (req, res) => {
     let columns = [];
     if (filtered.length) {
       // choose stable ordering: prefer common columns first if present, then rest
-      const prefer = ["time stamp", "date", "name", "pl code", "grouping code", "product name", "bags", "quantity", "qnty", "rate", "amount", "remarks", "ratio", "stock qty"];
+      const prefer = ["date", "name", "bags", "quantity", "qnty", "rate",   "debitAmount","creditAmount", "remarks", "ratio", "stock qty"];
       const keys = Object.keys(filtered[0]).filter(k => k !== "_rowId");
       // keep order: prefer array order first, then append other keys
       const ordered = [];
-      for (const p of prefer) if (keys.includes(p) && !ordered.includes(p)) ordered.push(p);
-      for (const k of keys) if (!ordered.includes(k)) ordered.push(k);
+      for (const p of prefer) {
+        if (
+          p === "debitAmount" ||
+          p === "creditAmount" ||
+          keys.includes(p)
+        ) {
+          if (!ordered.includes(p)) ordered.push(p);
+        }
+      }
+
       columns = ordered;
     } else {
       // fallback minimal set (lowercase)
-      columns = ["time stamp", "date", "name", "pl code", "grouping code", "product name", "bags", "quantity", "qnty", "rate", "amount", "remarks", "ratio", "stock qty"];
+      columns = ["date", "name", "bags", "quantity", "qnty", "rate",   "debitAmount", "creditAmount", "remarks", "ratio", "stock qty"];
     }
     console.log("[DBG] invoices columns ->", columns);
 
-    const out = filtered.map((r, i) => ({ _rowId: i + 1, ...r }));
+    const out = filtered.map((r, i) => {
+      const amt = toNum(r["amount"]);
+      const { debitAmount, creditAmount } = splitDebitCredit(amt);
+
+      const { amount, ...rest } = r;
+
+      return {
+        _rowId: i + 1,
+        ...rest,
+        debitAmount,
+        creditAmount,
+      };
+
+    });
     res.json({ columns, rows: out });
   } catch (e) {
     console.error(e);
@@ -466,89 +545,106 @@ exports.getInvoices = async (req, res) => {
 };
 
 
-
-
-/* ----------- Opening Balance (PL Code: 'Opening Balance') ----------- */
-
-exports.getOpeningBalance = async (req, res) => {
+exports.getPLSummary = async (req, res) => {
   try {
-    console.log("[REQ] /opening-balance");
-
     const raw = await fetchSheetRows();
     const rows = normalizeRows(raw);
 
-    // Debug: see some PL Code values in server log
-    const plValues = [...new Set(rows.map(r => (r["pl code"] || "").toString().trim()))];
-    console.log("[DBG] PL Code values (sample):", plValues.slice(0, 30));
-
-    // Make match more flexible:
-    // - trim
-    // - lowercase
-    // - allow values that CONTAIN the words "opening balance"
-    const candidates = rows.filter(r => {
-      const v = (r["pl code"] || "").toString().trim().toLowerCase();
-      if (!v) return false;
-      return v === "opening balance" || v.includes("opening balance");
-    });
-
-    if (!candidates.length) {
-      console.log("[DBG] No 'Opening Balance' PL Code row found");
-      return res.json({ stockQty: 0, rate: 0 });
-    }
-
-    // If there are multiple rows, use the first one for now
-    const obRow = candidates[0];
-
-    const stock = toNum(obRow["stock qty"]);
-    const rate  = toNum(obRow["rate"]);
-
-    console.log("[DBG] Opening Balance row picked:", {
-      plCode: obRow["pl code"],
-      stock,
-      rate,
-    });
-
-    res.json({
-      stockQty: stock,
-      rate: rate,
-    });
-
-  } catch (e) {
-    console.error("Error in /opening-balance:", e);
-    res.status(500).json({ error: "Failed to fetch opening balance" });
-  }
-};
-
-
-/* ----------- Nagdi Tutra (PL Code: 'Nagdi Tutra') ----------- */
-
-exports.getNagdiTutra = async (req, res) => {
-  try {
-    console.log("[REQ] /nagdi-tutra", req.query);
-
-    const raw = await fetchSheetRows();
-    const rows = normalizeRows(raw);
-
-    // apply same time filter as dashboard (month/year/date range)
-   const scoped = filterRowsByTime(
+    const scoped = filterRowsByTime(
       rows,
       withDefaultMonthYear({ ...req.query })
     );
 
-    debugLogSample("scoped (nagdi tutra)", scoped, 1);
+    // 1️⃣ Separate rows
+    const openingRows = scoped.filter(isOpeningStockRow);
 
-    // filter PL Code = 'Nagdi Tutra'
-    const nagdiRows = scoped.filter(r =>
-      (r["pl code"] || "").toString().trim().toLowerCase() === "nagdi tutra"
+    const revenueRows = scoped.filter(r =>
+      (r["pl code"] || "").toLowerCase().includes("revenue")
     );
 
-    console.log("[DBG] nagdiRows length =", nagdiRows.length);
+    const purchaseRows = scoped.filter(r =>
+      (r["pl code"] || "").toLowerCase().includes("purchase")
+    );
 
-    const totalNagdi = round2(sumBy(nagdiRows, "amount"));
+    const otherIncomeRows = scoped.filter(r =>
+      (r["pl code"] || "").toLowerCase().includes("other income")
+    );
 
-    res.json({ amount: totalNagdi });
+    const variableCostRows = scoped.filter(r => {
+      const p = (r["pl code"] || "").toLowerCase();
+      return (
+        p.includes("manufacturing") ||
+        p.includes("selling") ||
+        p.includes("employee")
+      );
+    });
+
+    const fixedCostRows = scoped.filter(r => {
+      const p = (r["pl code"] || "").toLowerCase();
+      return (
+        p.includes("administrative") ||
+        p.includes("tax") ||
+        p.includes("finance")
+      );
+    });
+
+    // 2️⃣ Aggregate helper (UNCHANGED)
+    const agg = (list) => ({
+      stockQty: sumBy(list, "stock qty"),
+      q1: sumBy(list, "quantity"),
+      q2: sumBy(list, "qnty"),
+      debit: round2(
+        Math.abs(sumBy(list.filter(r => toNum(r.amount) < 0), "amount"))
+      ),
+      credit: round2(
+        sumBy(list.filter(r => toNum(r.amount) > 0), "amount")
+      ),
+    });
+
+    // 3️⃣ Opening Balance (UNCHANGED)
+    const openingRate = toNum(openingRows[0]?.["rate"]);
+
+    const opening = openingRows.length
+      ? {
+          stockQty: toNum(openingRows[0]["stock qty"]),
+          q1: toNum(openingRows[0]["quantity"]),
+          q2: toNum(openingRows[0]["qnty"]),
+          debit: 0,
+          credit: round2(toNum(openingRows[0]["qnty"]) * openingRate),
+          rate: openingRate,
+          defaultRate: openingRate,
+          isEditableRate: true
+        }
+      : {
+          stockQty: 0,
+          q1: 0,
+          q2: 0,
+          debit: 0,
+          credit: 0,
+          rate: 0
+        };
+
+    // 4️⃣ Base aggregates only
+    const revenue = agg(revenueRows);
+    const purchase = agg(purchaseRows);
+    const otherIncome = agg(otherIncomeRows);
+    const variableCost = agg(variableCostRows);
+    const fixedCost = agg(fixedCostRows);
+
+    // ✅ FINAL RESPONSE — BASE DATA ONLY
+    res.json({
+      summaryBase: {
+        opening,
+        revenue,
+        purchase,
+        otherIncome,
+        variableCost,
+        fixedCost
+      }
+    });
+
   } catch (e) {
-    console.error("Error in /nagdi-tutra:", e);
-    res.status(500).json({ error: "Failed to fetch Nagdi Tutra amount" });
+    console.error(e);
+    res.status(500).json({ error: "Failed to build PL summary" });
   }
 };

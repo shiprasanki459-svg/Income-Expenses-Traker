@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import SidebarSearchSort from "./components/SidebarSearchSort";
 import Topbar from "./components/Topbar";
@@ -30,6 +30,7 @@ function AppLayout({ children, ...props }) {
     applyMonthYear,
     applyYearOnly,
     clearFilter,
+    timeQS,
   } = props;
 
   // compute wrapper classes exactly like your previous working App.jsx
@@ -63,8 +64,8 @@ function AppLayout({ children, ...props }) {
           applyYearOnly={applyYearOnly}
           clearFilter={clearFilter}
           showTopbarFilters={showTopbarFilters}   /* <-- forward the flag */
-            openFiltersByDefault={showTopbarFilters}   // <<--- add this line
-
+          openFiltersByDefault={showTopbarFilters}   // <<--- add this line
+          timeQS={timeQS} 
 
         />
 
@@ -72,6 +73,22 @@ function AppLayout({ children, ...props }) {
       </div>
     </div>
   );
+}
+
+function getFinancialYearRange(date = new Date()) {
+  const year = date.getFullYear();
+  const month = date.getMonth(); // 0-based
+
+  const fyStartYear = month >= 3 ? year : year - 1;
+
+  const start = `${fyStartYear}-04-01`;
+  const end = date.toISOString().slice(0, 10);
+
+  return {
+    fyStartYear,
+    start,
+    end
+  };
 }
 
 
@@ -84,9 +101,17 @@ export default function App() {
   const [sidebarHidden, setSidebarHidden] = useState(false);
 
   // topbar filters
-  const now = new Date();
-  const defaultMonth = now.getMonth() + 1;
-  const defaultYear = now.getFullYear();
+  // 🔹 Financial Year default (1 April → Today)
+  const { fyStartYear, start: fyStartDate, end: todayDate } =
+    getFinancialYearRange();
+
+  const [timeQS, setTimeQS] = useState({
+    start: fyStartDate,
+    end: todayDate
+  });
+
+
+
   const monthNamesLong = [
     "", "January","February","March","April","May","June",
     "July","August","September","October","November","December"
@@ -94,10 +119,9 @@ export default function App() {
 
   const [activeFilterType, setActiveFilterType] = useState("");
   const [activeFilterLabel, setActiveFilterLabel] = useState(
-    `Showing: ${monthNamesLong[defaultMonth]} ${defaultYear} (default)`
+    `Showing: FY ${fyStartYear}-${fyStartYear + 1} (01 Apr → Today)`
   );
   const [disabledFilter, setDisabledFilter] = useState("");
-  const [timeQS, setTimeQS] = useState({ month: defaultMonth, year: defaultYear });
 
   const handleToggleSidebar = () => {
     const isMobile = window.matchMedia("(max-width: 767px)").matches;
@@ -142,25 +166,58 @@ export default function App() {
 
  const clearFilter = () => {
   setActiveFilterType("");
-  setActiveFilterLabel(`Showing: ${monthNamesLong[defaultMonth]} ${defaultYear} (default)`);
   setDisabledFilter("");
 
-  // Reset inputs visually to current month/year (keep year-only blank)
+  // Reset timeQS to Financial Year default
+  setTimeQS({
+    start: fyStartDate,
+    end: todayDate
+  });
+
+  // Reset label
+  setActiveFilterLabel(`Showing: FY ${fyStartYear}-${fyStartYear + 1} (01 Apr → Today)`);
+
+  // 🔹 Clear ALL filter inputs visually
   const monthEl = document.getElementById("monthSelect");
   const yearEl  = document.getElementById("yearInput");
   const yearOnlyEl = document.getElementById("yearOnlyInput");
   const startEl = document.getElementById("startDate");
   const endEl   = document.getElementById("endDate");
 
-  if (monthEl) monthEl.value = String(defaultMonth);
-  if (yearEl)  yearEl.value  = String(defaultYear);
+  if (monthEl) monthEl.value = "";
+  if (yearEl) yearEl.value = "";
   if (yearOnlyEl) yearOnlyEl.value = "";
   if (startEl) startEl.value = "";
-  if (endEl)   endEl.value   = "";
-
-  // go back to default month scope
-  setTimeQS({ month: defaultMonth, year: defaultYear });
+  if (endEl) endEl.value = "";
 };
+  useEffect(() => {
+    const checkFY = () => {
+      const { fyStartYear, start, end } = getFinancialYearRange();
+
+      setTimeQS((prev) => {
+        // only auto-update if user is on DEFAULT (no active filter)
+        if (
+          !activeFilterType &&
+          (prev.start !== start || prev.end !== end)
+        ) {
+          setActiveFilterLabel(
+            `Showing: FY ${fyStartYear}-${fyStartYear + 1} (01 Apr → Today)`
+          );
+          return { start, end };
+        }
+        return prev;
+      });
+    };
+
+    // run once on mount
+    checkFY();
+
+    // check once every day (safe & cheap)
+    const interval = setInterval(checkFY, 60 * 60 * 1000); // every 1 hour
+
+    return () => clearInterval(interval);
+  }, [activeFilterType]);
+
 
 
   return (
@@ -205,6 +262,7 @@ export default function App() {
                 applyMonthYear={applyMonthYear}
                 applyYearOnly={applyYearOnly}
                 clearFilter={clearFilter}
+                timeQS={timeQS} 
               >
                 <Dashboard timeQS={timeQS} />
               </AppLayout>
@@ -232,6 +290,7 @@ export default function App() {
                 applyMonthYear={applyMonthYear}
                 applyYearOnly={applyYearOnly}
                 clearFilter={clearFilter}
+                timeQS={timeQS} 
               >
                 {/* 🔹 Main fix: pass timeQS into BankStatement */}
                 <BankStatement timeQS={timeQS} />
@@ -261,6 +320,7 @@ export default function App() {
                 applyMonthYear={applyMonthYear}
                 applyYearOnly={applyYearOnly}
                 clearFilter={clearFilter}
+                timeQS={timeQS} 
               >
                 <MonthlyComparison timeQS={timeQS} />
               </AppLayout>
@@ -288,8 +348,8 @@ export default function App() {
                 applyMonthYear={applyMonthYear}
                 applyYearOnly={applyYearOnly}
                 clearFilter={clearFilter}
+                timeQS={timeQS} 
                 showTopbarFilters={false}   /* <-- add this */
-
               >
                 <CustomComparison timeQS={timeQS} />
               </AppLayout>
